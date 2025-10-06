@@ -2,7 +2,7 @@
 #define __DTH11_H
 
 #ifdef __cplusplus
- extern "C" {
+	extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/

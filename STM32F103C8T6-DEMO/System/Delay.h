@@ -2,14 +2,14 @@
 #define __DELAY_H
 
 #ifdef __cplusplus
- extern "C" {
+	extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define TIMER_PORT       TIM2
-#define TIMER_CLK        RCC_APB1Periph_TIM2
+#define TIMER_PORT       TIM3
+#define TIMER_CLK        RCC_APB1Periph_TIM3
 
 //extern volatile uint32_t usTicks;
 

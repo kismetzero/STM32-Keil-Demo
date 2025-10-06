@@ -41,3 +41,7 @@ void PWM_Init(void) {
 	
 	TIM_Cmd(PWM_TIMER_PORT, ENABLE);   //使能定时器
 }
+
+void PWM_SetCompare(uint16_t comp) {
+	TIM_SetCompare1(PWM_TIMER_PORT, comp);
+}

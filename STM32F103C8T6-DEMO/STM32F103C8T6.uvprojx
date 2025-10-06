@@ -462,6 +462,46 @@
               <FileType>5</FileType>
               <FilePath>.\Hardware\DTH11.h</FilePath>
             </File>
+            <File>
+              <FileName>HX1838.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\HX1838.c</FilePath>
+            </File>
+            <File>
+              <FileName>HX1838.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\HX1838.h</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\DS3231.c</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\DS3231.h</FilePath>
+            </File>
+            <File>
+              <FileName>W25Q128JV.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\W25Q128JV.c</FilePath>
+            </File>
+            <File>
+              <FileName>W25Q128JV.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\W25Q128JV.h</FilePath>
+            </File>
+            <File>
+              <FileName>AT24C32.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\AT24C32.c</FilePath>
+            </File>
+            <File>
+              <FileName>AT24C32.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\AT24C32.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

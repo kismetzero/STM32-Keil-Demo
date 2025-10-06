@@ -2,7 +2,7 @@
 #define __PWM_H
 
 #ifdef __cplusplus
- extern "C" {
+	extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
@@ -20,6 +20,7 @@
 
 void PWM_DeInit(void);
 void PWM_Init(void);
+void PWM_SetCompare(uint16_t comp);
 
 #ifdef __cplusplus
 }
