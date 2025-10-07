@@ -8,8 +8,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define TIMER_PORT       TIM2
-#define TIMER_CLK        RCC_APB1Periph_TIM2
+#define TIMER_PORT		TIM2
+#define TIMER_CLK		RCC_APB1Periph_TIM2
 
 typedef void (*Timer_Callback_t)(void);
 

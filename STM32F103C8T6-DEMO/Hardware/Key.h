@@ -8,12 +8,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define KEY_GPIO_PORT    GPIOA
-#define KEY_GPIO_PIN     GPIO_Pin_0
-#define KEY_GPIO_CLK     RCC_APB2Periph_GPIOA
+#define KEY_GPIO_PORT	GPIOA
+#define KEY_GPIO_PIN	GPIO_Pin_0
+#define KEY_GPIO_CLK	RCC_APB2Periph_GPIOA
 
-#define KEY_RELEASED    (GPIO_ReadInputDataBit(KEY_GPIO_PORT, KEY_GPIO_PIN) == 0)
-#define KEY_PRESSED     (GPIO_ReadInputDataBit(KEY_GPIO_PORT, KEY_GPIO_PIN) == 1)
+#define KEY_RELEASED	(GPIO_ReadInputDataBit(KEY_GPIO_PORT, KEY_GPIO_PIN) == 0)
+#define KEY_PRESSED		(GPIO_ReadInputDataBit(KEY_GPIO_PORT, KEY_GPIO_PIN) == 1)
 
 typedef enum {
     KEY_NONE = 0,

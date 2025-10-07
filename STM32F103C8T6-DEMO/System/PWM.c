@@ -37,11 +37,29 @@ void PWM_Init(void) {
 	TIM_OCInitStucture.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStucture.TIM_Pulse = 500;    //CCR
 	
+#if (PWM_TIMER_CHANNEL == 1)
 	TIM_OC1Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
+#elif (PWM_TIMER_CHANNEL == 2)
+	TIM_OC2Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
+#elif (PWM_TIMER_CHANNEL == 3)
+	TIM_OC3Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
+#elif (PWM_TIMER_CHANNEL == 4)
+	TIM_OC4Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
+#endif
 	
 	TIM_Cmd(PWM_TIMER_PORT, ENABLE);   //使能定时器
 }
 
 void PWM_SetCompare(uint16_t comp) {
+	
+#if (PWM_TIMER_CHANNEL == 1)
 	TIM_SetCompare1(PWM_TIMER_PORT, comp);
+#elif (PWM_TIMER_CHANNEL == 2)
+	TIM_SetCompare2(PWM_TIMER_PORT, comp);
+#elif (PWM_TIMER_CHANNEL == 3)
+	TIM_SetCompare3(PWM_TIMER_PORT, comp);
+#elif (PWM_TIMER_CHANNEL == 4)
+	TIM_SetCompare4(PWM_TIMER_PORT, comp);
+#endif
+	
 }

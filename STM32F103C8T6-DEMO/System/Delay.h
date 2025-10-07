@@ -8,8 +8,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define TIMER_PORT       TIM3
-#define TIMER_CLK        RCC_APB1Periph_TIM3
+#define TIMER_PORT		TIM3
+#define TIMER_CLK		RCC_APB1Periph_TIM3
 
 //extern volatile uint32_t usTicks;
 
