@@ -427,6 +427,16 @@
               <FileType>5</FileType>
               <FilePath>.\System\Serial.h</FilePath>
             </File>
+            <File>
+              <FileName>TIC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\TIC.c</FilePath>
+            </File>
+            <File>
+              <FileName>TIC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\TIC.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -68,7 +68,7 @@ void Delay_Init(void) {
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;                  //时钟划分
 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;              //计数模式
-	TIM_TimeBaseInitStructure.TIM_Period = 50000 - 1;                            //周期，ARR计数器
+	TIM_TimeBaseInitStructure.TIM_Period = 60000 - 1;                            //周期，ARR计数器
 	TIM_TimeBaseInitStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1;   //预分频，PSC
 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIMER_PORT, &TIM_TimeBaseInitStructure);
