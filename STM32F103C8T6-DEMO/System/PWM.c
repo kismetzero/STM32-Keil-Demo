@@ -1,34 +1,36 @@
 #include "PWM.h"
 
-void PWM_DeInit(void) {
+void PWM_OCDeInit(void) {
 	
 }
 
-void PWM_Init(void) {
+void PWM_OCInit(void) {
 	//引脚重映射
 	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	//GPIO_PinRemapConfig(GPIO_PartialRemap1_TIM2, ENABLE);
 	//GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 	
-	RCC_APB2PeriphClockCmd(PWM_GPIO_CLK, ENABLE);
+	RCC_APB2PeriphClockCmd(PWM_OC_GPIO_CLK, ENABLE);
 	
 	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_InitStructure.GPIO_Pin = PWM_GPIO_PIN;
+	GPIO_InitStructure.GPIO_Pin = PWM_OC_GPIO_PIN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(PWM_GPIO_PORT, &GPIO_InitStructure);
+	GPIO_Init(PWM_OC_GPIO_PORT, &GPIO_InitStructure);
 	
-	RCC_APB1PeriphClockCmd(PWM_TIMER_CLK, ENABLE);
+	RCC_APB1PeriphClockCmd(PWM_OC_TIMER_CLK, ENABLE);
 	
-	TIM_InternalClockConfig(PWM_TIMER_PORT);        //使用内部时钟
+	TIM_InternalClockConfig(PWM_OC_TIMER_PORT);        //使用内部时钟
 	
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+	//TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;                  //时钟划分
 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;              //计数模式
 	TIM_TimeBaseInitStructure.TIM_Period = 1000 - 1;                             //周期，ARR计数器
 	TIM_TimeBaseInitStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1;   //预分频，PSC
 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
-	TIM_TimeBaseInit(PWM_TIMER_PORT, &TIM_TimeBaseInitStructure);
+	TIM_TimeBaseInit(PWM_OC_TIMER_PORT, &TIM_TimeBaseInitStructure);
 	
 	TIM_OCInitTypeDef TIM_OCInitStucture;
 	TIM_OCStructInit(&TIM_OCInitStucture);
@@ -37,29 +39,128 @@ void PWM_Init(void) {
 	TIM_OCInitStucture.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStucture.TIM_Pulse = 500;    //CCR
 	
-#if (PWM_TIMER_CHANNEL == 1)
-	TIM_OC1Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
-#elif (PWM_TIMER_CHANNEL == 2)
-	TIM_OC2Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
-#elif (PWM_TIMER_CHANNEL == 3)
-	TIM_OC3Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
-#elif (PWM_TIMER_CHANNEL == 4)
-	TIM_OC4Init(PWM_TIMER_PORT, &TIM_OCInitStucture);
+#if (PWM_OC_TIMER_CHANNEL == 1)
+	TIM_OC1Init(PWM_OC_TIMER_PORT, &TIM_OCInitStucture);
+#elif (PWM_OC_TIMER_CHANNEL == 2)
+	TIM_OC2Init(PWM_OC_TIMER_PORT, &TIM_OCInitStucture);
+#elif (PWM_OC_TIMER_CHANNEL == 3)
+	TIM_OC3Init(PWM_OC_TIMER_PORT, &TIM_OCInitStucture);
+#elif (PWM_OC_TIMER_CHANNEL == 4)
+	TIM_OC4Init(PWM_OC_TIMER_PORT, &TIM_OCInitStucture);
 #endif
 	
-	TIM_Cmd(PWM_TIMER_PORT, ENABLE);   //使能定时器
+	TIM_Cmd(PWM_OC_TIMER_PORT, ENABLE);   //使能定时器
 }
 
-void PWM_SetCompare(uint16_t comp) {
+void PWM_OCSetCompare(uint16_t comp) {
 	
-#if (PWM_TIMER_CHANNEL == 1)
-	TIM_SetCompare1(PWM_TIMER_PORT, comp);
-#elif (PWM_TIMER_CHANNEL == 2)
-	TIM_SetCompare2(PWM_TIMER_PORT, comp);
-#elif (PWM_TIMER_CHANNEL == 3)
-	TIM_SetCompare3(PWM_TIMER_PORT, comp);
-#elif (PWM_TIMER_CHANNEL == 4)
-	TIM_SetCompare4(PWM_TIMER_PORT, comp);
+#if (PWM_OC_TIMER_CHANNEL == 1)
+	TIM_SetCompare1(PWM_OC_TIMER_PORT, comp);
+#elif (PWM_OC_TIMER_CHANNEL == 2)
+	TIM_SetCompare2(PWM_OC_TIMER_PORT, comp);
+#elif (PWM_OC_TIMER_CHANNEL == 3)
+	TIM_SetCompare3(PWM_OC_TIMER_PORT, comp);
+#elif (PWM_OC_TIMER_CHANNEL == 4)
+	TIM_SetCompare4(PWM_OC_TIMER_PORT, comp);
+#endif
+	
+}
+
+void PWM_ICDeInit(void) {
+	
+}
+
+void PWM_ICInit(void) {
+	//引脚重映射
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	//GPIO_PinRemapConfig(GPIO_PartialRemap1_TIM2, ENABLE);
+	//GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+	
+	RCC_APB2PeriphClockCmd(PWM_IC_GPIO_CLK, ENABLE);
+	
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_InitStructure.GPIO_Pin = PWM_IC_GPIO_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(PWM_IC_GPIO_PORT, &GPIO_InitStructure);
+	
+	RCC_APB1PeriphClockCmd(PWM_IC_TIMER_CLK, ENABLE);
+	
+	TIM_InternalClockConfig(PWM_IC_TIMER_PORT);        //使用内部时钟
+	
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+	//TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
+	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;                  //时钟划分
+	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;              //计数模式
+	TIM_TimeBaseInitStructure.TIM_Period = 60000 - 1;                            //周期，ARR计数器
+	TIM_TimeBaseInitStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1;   //预分频，PSC
+	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
+	TIM_TimeBaseInit(PWM_IC_TIMER_PORT, &TIM_TimeBaseInitStructure);
+	
+	TIM_ICInitTypeDef TIM_ICInitStructure;
+	//TIM_ICStructInit(&TIM_ICInitStructure);
+#if (PWM_IC_TIMER_CHANNEL == 1)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
+#elif (PWM_IC_TIMER_CHANNEL == 2)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+#elif (PWM_IC_TIMER_CHANNEL == 3)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_3;
+#elif (PWM_IC_TIMER_CHANNEL == 4)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_4;
+#endif
+	TIM_ICInitStructure.TIM_ICFilter = 0x1;                          //外部触发数字滤波器
+	TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;      //触发类型
+	TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;            //触发信号分频器
+	TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;  //直连或交叉通道
+	//TIM_PWMIConfig(TIC_TIMER_PORT, &TIM_ICInitStructure);
+	TIM_ICInit(PWM_IC_TIMER_PORT, &TIM_ICInitStructure);
+	
+#if (PWM_IC_TIMER_CHANNEL == 1)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+#elif (PWM_IC_TIMER_CHANNEL == 2)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
+#elif (PWM_IC_TIMER_CHANNEL == 3)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_4;
+#elif (PWM_IC_TIMER_CHANNEL == 4)
+	TIM_ICInitStructure.TIM_Channel = TIM_Channel_3;
+#endif
+	TIM_ICInitStructure.TIM_ICFilter = 0x1;                            //外部触发数字滤波器
+	TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;       //触发类型
+	TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;              //触发信号分频器
+	TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_IndirectTI;  //直连或交叉通道
+	TIM_ICInit(PWM_IC_TIMER_PORT, &TIM_ICInitStructure);
+	
+	TIM_SelectInputTrigger(PWM_IC_TIMER_PORT, TIM_TS_TI1FP1);           //从模式触发源选择
+	TIM_SelectSlaveMode(PWM_IC_TIMER_PORT, TIM_SlaveMode_Reset);        //从模式模式选择
+	
+	TIM_Cmd(PWM_IC_TIMER_PORT, ENABLE);   //使能定时器
+}
+
+uint32_t PWM_ICGetCapture() {
+	
+#if (PWM_IC_TIMER_CHANNEL == 1)
+	return TIM_GetCapture1(PWM_IC_TIMER_PORT);
+#elif (PWM_IC_TIMER_CHANNEL == 2)
+	return TIM_GetCapture2(PWM_IC_TIMER_PORT);
+#elif (PWM_IC_TIMER_CHANNEL == 3)
+	return TIM_GetCapture3(PWM_IC_TIMER_PORT);
+#elif (PWM_IC_TIMER_CHANNEL == 4)
+	return TIM_GetCapture4(PWM_IC_TIMER_PORT);
+#endif
+	
+}
+
+uint32_t PWM_ICGetCapture2() {
+	
+#if (PWM_IC_TIMER_CHANNEL == 1)
+	return TIM_GetCapture2(PWM_IC_TIMER_PORT);
+#elif (PWM_IC_TIMER_CHANNEL == 2)
+	return TIM_GetCapture1(PWM_IC_TIMER_PORT);
+#elif (PWM_IC_TIMER_CHANNEL == 3)
+	return TIM_GetCapture4(PWM_IC_TIMER_PORT);
+#elif (PWM_IC_TIMER_CHANNEL == 4)
+	return TIM_GetCapture3(PWM_IC_TIMER_PORT);
 #endif
 	
 }

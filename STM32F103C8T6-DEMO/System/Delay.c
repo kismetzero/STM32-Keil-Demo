@@ -1,6 +1,5 @@
 #include "Delay.h"
 
-
 //SysTick中断计时
 //volatile uint32_t usTicks = 0;
 //void Delay_Init(void) {
@@ -66,6 +65,7 @@ void Delay_Init(void) {
 	TIM_InternalClockConfig(TIMER_PORT);        //使用内部时钟
 	
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+	//TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;                  //时钟划分
 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;              //计数模式
 	TIM_TimeBaseInitStructure.TIM_Period = 60000 - 1;                            //周期，ARR计数器

@@ -1,22 +1,18 @@
 #include "stm32f10x.h"                  // Device header
 #include "Delay.h"
-#include "PWM.h"
+#include "LED.h"
+#include "Buzzer.h"
 
 uint16_t i = 0;
 
 int main(void) {
 	Delay_Init();
-	PWM_Init();
+	Buzzer_Init();
+	LED_Init();
 	while(1) {
-		for(i = 0; i <= 1000; i++) {
-			PWM_SetCompare(i);
-			Delay_ms(10);
-		}
-		Delay_ms(5000);
-		for(i = 0; i <= 1000; i++) {
-			PWM_SetCompare(1000 - i);
-			Delay_ms(10);
-		}
-		Delay_ms(5000);
+		LED_Toggle();
+		Delay_ms(500);
+		LED_Toggle();
+		Delay_ms(500);
 	}
 }
