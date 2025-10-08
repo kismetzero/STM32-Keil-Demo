@@ -8,19 +8,17 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define KEY_GPIO_PORT	GPIOA
-#define KEY_GPIO_PIN	GPIO_Pin_0
-#define KEY_GPIO_CLK	RCC_APB2Periph_GPIOA
+#define KEY_GPIO_PORT		GPIOA
+#define KEY_GPIO_PIN		GPIO_Pin_0
+#define KEY_GPIO_CLK		RCC_APB2Periph_GPIOA
+#define KEY_EXTI_LINE		EXTI_Line0
+#define KEY_PORT_SOURCE		GPIO_PortSourceGPIOA
+#define KEY_PIN_SOURC		GPIO_PinSource0
+#define KEY_IRQ_HANDLER		EXTI0_IRQHandler
+#define KEY_IRQ_CHANNEL		EXTI0_IRQn
 
-#define KEY_RELEASED	(GPIO_ReadInputDataBit(KEY_GPIO_PORT, KEY_GPIO_PIN) == 0)
-#define KEY_PRESSED		(GPIO_ReadInputDataBit(KEY_GPIO_PORT, KEY_GPIO_PIN) == 1)
-
-typedef enum {
-    KEY_NONE = 0,
-    KEY_SINGLE_CLICK,
-    KEY_DOUBLE_CLICK,
-    KEY_LONG_PRESS
-} Key_Event_t;
+// 回调函数类型定义
+typedef void (*Key_Callback_t)(void);
 
 void Key_Init(void);
 uint8_t Key_Scan(void);

@@ -60,9 +60,9 @@
 
 //使用TIM定时计数器轮询
 void Delay_Init(void) {
-	RCC_APB1PeriphClockCmd(TIMER_CLK, ENABLE);  //使能总线时钟
+	RCC_APB1PeriphClockCmd(DELAY_TIM_CLK, ENABLE);  //使能总线时钟
 	
-	TIM_InternalClockConfig(TIMER_PORT);        //使用内部时钟
+	TIM_InternalClockConfig(DELAY_TIM_PORT);        //使用内部时钟
 	
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	//TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
@@ -71,13 +71,13 @@ void Delay_Init(void) {
 	TIM_TimeBaseInitStructure.TIM_Period = 60000 - 1;                            //周期，ARR计数器
 	TIM_TimeBaseInitStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1;   //预分频，PSC
 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
-	TIM_TimeBaseInit(TIMER_PORT, &TIM_TimeBaseInitStructure);
+	TIM_TimeBaseInit(DELAY_TIM_PORT, &TIM_TimeBaseInitStructure);
 	
-	TIM_Cmd(TIMER_PORT, ENABLE);   //使能定时器
+	TIM_Cmd(DELAY_TIM_PORT, ENABLE);   //使能定时器
 }
 void Delay_us(uint32_t us) {
-	uint32_t start = TIMER_PORT->CNT;
-    while ((TIMER_PORT->CNT - start) < us) {
+	uint32_t start = DELAY_TIM_PORT->CNT;
+    while ((DELAY_TIM_PORT->CNT - start) < us) {
 		__asm("nop"); // 空操作，防止优化
 	}
 }

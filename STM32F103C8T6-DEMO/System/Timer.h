@@ -8,9 +8,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define TIMER_PORT		TIM2
-#define TIMER_CLK		RCC_APB1Periph_TIM2
+#define TIMER_TIM_PORT				TIM2
+#define TIMER_TIM_CLK				RCC_APB1Periph_TIM2
+#define TIMER_TIM_IRQ_HANDLER		TIM2_IRQHandler
+#define TIMER_TIM_IRQ_CHANNEL		TIM2_IRQn
 
+// 回调函数类型定义
 typedef void (*Timer_Callback_t)(void);
 
 void Timer_Init(void);
