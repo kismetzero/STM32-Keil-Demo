@@ -542,6 +542,11 @@
               <FileType>1</FileType>
               <FilePath>.\User\main.c</FilePath>
             </File>
+            <File>
+              <FileName>pin-use.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\pin-use.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

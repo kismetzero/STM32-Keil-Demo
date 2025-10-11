@@ -126,7 +126,7 @@ void PWM_ICInit(void) {
 	TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;      //触发类型
 	TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;            //触发信号分频器
 	TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;  //直连或交叉通道
-	//TIM_PWMIConfig(TIC_TIMER_PORT, &TIM_ICInitStructure);
+	//TIM_PWMIConfig(PWM_IC_TIM_PORT, &TIM_ICInitStructure);
 	TIM_ICInit(PWM_IC_TIM_PORT, &TIM_ICInitStructure);
 	
 #if (PWM_IC_TIM_CHANNEL == 1)
@@ -144,13 +144,18 @@ void PWM_ICInit(void) {
 	TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_IndirectTI;  //直连或交叉通道
 	TIM_ICInit(PWM_IC_TIM_PORT, &TIM_ICInitStructure);
 	
+#if (PWM_IC_TIM_CHANNEL == 1)
 	TIM_SelectInputTrigger(PWM_IC_TIM_PORT, TIM_TS_TI1FP1);           //从模式触发源选择
 	TIM_SelectSlaveMode(PWM_IC_TIM_PORT, TIM_SlaveMode_Reset);        //从模式模式选择
+#elif (PWM_IC_TIM_CHANNEL == 2)
+	TIM_SelectInputTrigger(PWM_IC_TIM_PORT, TIM_TS_TI2FP2);           //从模式触发源选择
+	TIM_SelectSlaveMode(PWM_IC_TIM_PORT, TIM_SlaveMode_Reset);        //从模式模式选择
+#endif
 	
 	TIM_Cmd(PWM_IC_TIM_PORT, ENABLE);   //使能定时器
 }
 
-uint32_t PWM_ICGetCapture() {
+uint32_t PWM_ICGetCapture(void) {
 	
 #if (PWM_IC_TIM_CHANNEL == 1)
 	return TIM_GetCapture1(PWM_IC_TIM_PORT);
@@ -164,7 +169,7 @@ uint32_t PWM_ICGetCapture() {
 	
 }
 
-uint32_t PWM_ICGetCapture2() {
+uint32_t PWM_ICGetCapture2(void) {
 	
 #if (PWM_IC_TIM_CHANNEL == 1)
 	return TIM_GetCapture2(PWM_IC_TIM_PORT);
@@ -178,10 +183,10 @@ uint32_t PWM_ICGetCapture2() {
 	
 }
 
-uint32_t PWM_ICGetFreq() {
+uint32_t PWM_ICGetFreq(void) {
 	return 1000000 / (PWM_ICGetCapture() + 1);
 }
 
-uint32_t PWM_ICGetDuty() {
+uint32_t PWM_ICGetDuty(void) {
 	return (PWM_ICGetCapture2() + 1) * 1000 / (PWM_ICGetCapture() + 1);
 }

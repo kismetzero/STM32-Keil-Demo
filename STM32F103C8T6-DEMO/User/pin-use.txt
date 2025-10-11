@@ -1,0 +1,20 @@
+PA0 -------- KEY
+
+PA9 ---------- USAR-RX
+PA10 --------- USAR-TX
+
+PB6 ---------- TFT-RES
+PB4 ---------- TFT-DC
+PB5 ---------- TFT-SDA
+PB3 ---------- TFT-SCL
+PB7 ---------- TFT-CS
+
+PB8 ---------- OLED-SCL
+PB9 ---------- OLED-SDA
+
+PB12 ---------- FLS-CS-NSS
+PB14 ---------- FLS-DO-MISO
+PB13 ---------- FLS-CLK-SCK
+PB15 ---------- FLS-DI-MOSI
+
+PC13 --------- LED
