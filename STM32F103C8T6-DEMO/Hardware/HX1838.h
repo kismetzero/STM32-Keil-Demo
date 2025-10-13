@@ -17,6 +17,15 @@
 #define HX1838_TIM_IRQ_HANDLER	TIM2_IRQHandler
 #define HX1838_TIM_IRQ_CHANNEL	TIM2_IRQn
 
+typedef struct {
+	uint8_t valid;
+	uint8_t address;
+	uint8_t command;
+	uint8_t count;
+} NEC_Data_t;
+
+extern NEC_Data_t NEC_Data;
+
 void HX1838_Init(void);
 
 #ifdef __cplusplus

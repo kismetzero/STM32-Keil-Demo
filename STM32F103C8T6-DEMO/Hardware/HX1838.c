@@ -1,13 +1,10 @@
 #include "HX1838.h"
 
-uint8_t HX1838_Decode_Status = 0;
-uint8_t HX1838_Decode_Falling = 0;
-uint8_t HX1838_Decode_Rising = 0;
-uint8_t HX1838_Decode_CNT = 0;
-uint8_t HX1838_Decode_POS = 0;
-uint32_t HX1838_Decode_Data = 0;
-uint16_t HX1838_Decode_HT = 0;
-uint16_t HX1838_Decode_LT = 0;
+NEC_Data_t NEC_Data;
+
+uint8_t NEC_Decode_Status = 0;
+uint8_t NEC_Decode_POS = 0;
+uint32_t NEC_Decode_Data = 0;
 
 static inline uint16_t HX1838_GetLowTime(void) {
 	
@@ -40,54 +37,74 @@ void HX1838_TIM_IRQ_HANDLER(void) {
 	if(Falling || Rising) {
 		uint16_t HT = HX1838_GetHighTime();
 		uint16_t LT = HX1838_GetLowTime();
-		switch (HX1838_Decode_Status) {
+		switch (NEC_Decode_Status) {
 			case 0:
 				if(Falling) {
-					HX1838_Decode_Status++;
+					NEC_Decode_Status++;
 				}
 				break;
 			case 1:
 				if(Rising && LT > 8000 && LT < 10000) {
-					HX1838_Decode_Status++;
+					NEC_Decode_Status++;
 				} else {
-					HX1838_Decode_Status = 0;
+					NEC_Decode_Status = 0;
 				}
 				break;
 			case 2:
 				if(Falling) {
 					if(HT > 3500 && HT < 5500) {
-						HX1838_Decode_CNT = 0;
-						HX1838_Decode_POS = 0;
-						HX1838_Decode_Data = 0;
-						HX1838_Decode_Status++;
+						NEC_Data.valid = 0;
+						NEC_Data.address = 0;
+						NEC_Data.command = 0;
+						NEC_Data.count = 0;
+						NEC_Decode_POS = 0;
+						NEC_Decode_Data = 0;
+						NEC_Decode_Status++;
 					} else if (HT > 1250 && HT < 3250) {
-						HX1838_Decode_CNT++;
-						HX1838_Decode_Status = 0;
+						if(NEC_Data.valid) {
+							NEC_Data.count++;
+						}
+						NEC_Decode_Status = 0;
 					} else {
-						HX1838_Decode_Status = 0;
+						NEC_Decode_Status = 0;
 					}
 				} else {
-					HX1838_Decode_Status = 0;
+					NEC_Decode_Status = 0;
 				}
 				break;
 			case 3:
 				if(Rising) {
 					if(LT < 460 || LT > 660) {
-						HX1838_Decode_Status = 0;
+						NEC_Decode_Status = 0;
 					}	
 				} 
 				if(Falling) {
 					if(HT > 460 && HT < 660) {
-						HX1838_Decode_Data &= ~(1UL << HX1838_Decode_POS);
-						HX1838_Decode_POS++;
+						NEC_Decode_Data &= ~(1UL << NEC_Decode_POS);
+						NEC_Decode_POS++;
 					} else if (HT > 1590 && HT < 1790) {
-						HX1838_Decode_Data |= 1UL << HX1838_Decode_POS;
-						HX1838_Decode_POS++;
+						NEC_Decode_Data |= 1UL << NEC_Decode_POS;
+						NEC_Decode_POS++;
 					} else {
-						HX1838_Decode_Status = 0;
+						NEC_Decode_Status = 0;
 					}
-					if(HX1838_Decode_POS > 31) {
-						HX1838_Decode_Status = 0;
+					if(NEC_Decode_POS > 31) {
+						NEC_Decode_Status = 0;
+						uint8_t addr, addr_inv, cmd, cmd_inv;
+						uint8_t *bytes = (uint8_t*)&NEC_Decode_Data;
+						addr     = bytes[0];
+						addr_inv = bytes[1];
+						cmd      = bytes[2];
+						cmd_inv  = bytes[3];
+						if ((addr ^ addr_inv) == 0xFF && (cmd ^ cmd_inv) == 0xFF) {
+							NEC_Data.address = addr;
+							NEC_Data.command = cmd;
+							NEC_Data.valid = 1;
+						} else {
+							NEC_Data.address = 0;
+							NEC_Data.command = 0;
+							NEC_Data.valid = 0;
+						}
 					}
 				}
 				break;
