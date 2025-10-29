@@ -1,5 +1,5 @@
 #include "stm32f10x.h"				  // Device header
-#include "Delay.h"
+
 #include "HX1838.h"
 #include "OLED.h"
 
@@ -8,7 +8,6 @@ extern uint8_t NEC_Decode_POS;
 extern uint32_t NEC_Decode_Data;
 
 int main(void) {
-	Delay_Init();
 	HX1838_Init();
 	OLED_Init();
 	OLED_ShowString(0, 0, "val: ", OLED_8X16);

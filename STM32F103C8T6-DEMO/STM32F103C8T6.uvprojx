@@ -534,6 +534,46 @@
               <FileType>5</FileType>
               <FilePath>.\Hardware\AT24C32.h</FilePath>
             </File>
+            <File>
+              <FileName>SHT40.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\SHT40.c</FilePath>
+            </File>
+            <File>
+              <FileName>SHT40.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\SHT40.h</FilePath>
+            </File>
+            <File>
+              <FileName>AHT20.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\AHT20.c</FilePath>
+            </File>
+            <File>
+              <FileName>AHT20.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\AHT20.h</FilePath>
+            </File>
+            <File>
+              <FileName>BMP280.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\BMP280.c</FilePath>
+            </File>
+            <File>
+              <FileName>BMP280.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\BMP280.h</FilePath>
+            </File>
+            <File>
+              <FileName>EC11.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\EC11.c</FilePath>
+            </File>
+            <File>
+              <FileName>EC11.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\EC11.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
