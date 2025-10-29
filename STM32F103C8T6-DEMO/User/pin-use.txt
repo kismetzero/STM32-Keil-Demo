@@ -1,7 +1,11 @@
 PA0 -------- KEY
+PA1 -------- IR - T2C2
 
-PA9 ---------- USAR-RX
-PA10 --------- USAR-TX
+PA9 ---------- USART-RX
+PA10 --------- USART-TX
+
+PA11  -------- USB-
+PA12  -------- USB+
 
 PB6 ---------- TFT-RES
 PB4 ---------- TFT-DC

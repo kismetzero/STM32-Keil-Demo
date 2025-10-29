@@ -19,19 +19,19 @@
 void LED_Init(void);
 
 static inline void LED_ON(void) {
-    GPIO_ResetBits(LED_GPIO_PORT, LED_GPIO_PIN);
+	GPIO_ResetBits(LED_GPIO_PORT, LED_GPIO_PIN);
 }
 
 static inline void LED_OFF(void) {
-    GPIO_SetBits(LED_GPIO_PORT, LED_GPIO_PIN);
+	GPIO_SetBits(LED_GPIO_PORT, LED_GPIO_PIN);
 }
 
 static inline void LED_Toggle(void) {
-    if (GPIO_ReadOutputDataBit(LED_GPIO_PORT, LED_GPIO_PIN)) {
-        LED_ON();
-    } else {
-        LED_OFF();
-    }
+	if (GPIO_ReadOutputDataBit(LED_GPIO_PORT, LED_GPIO_PIN)) {
+		LED_ON();
+	} else {
+		LED_OFF();
+	}
 }
 
 #ifdef __cplusplus

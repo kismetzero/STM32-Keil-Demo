@@ -2,7 +2,7 @@
 #define __W25Q128JV_H
 
 #ifdef __cplusplus
-    extern "C" {
+	extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/

@@ -1,17 +1,17 @@
 #include "Key.h"
 
 typedef enum {
-    KEY_NONE = 0,
-    KEY_SINGLE_CLICK,
-    KEY_DOUBLE_CLICK,
-    KEY_LONG_PRESS
+	KEY_NONE = 0,
+	KEY_SINGLE_CLICK,
+	KEY_DOUBLE_CLICK,
+	KEY_LONG_PRESS
 } Key_Event_t;
 
 // 按键状态枚举
 typedef enum {
-    KEY_IDLE,      // 未按下
-    KEY_DEBOUNCE,  // 消抖中
-    KEY_PRESSED    // 已确认按下（等待释放）
+	KEY_IDLE,	 	// 未按下
+	KEY_DEBOUNCE,	// 消抖中
+	KEY_PRESSED		// 已确认按下（等待释放）
 } Key_State_t;
 
 static Key_Callback_t key_callback = 0;
@@ -48,17 +48,17 @@ void Key_Init(void) {
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
 	EXTI_Init(&EXTI_InitStructure);
 	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);    //设置NVIC中断分组
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//设置NVIC中断分组
 	
 	NVIC_InitTypeDef NVIC_InitStructure;
-	NVIC_InitStructure.NVIC_IRQChannel = KEY_IRQ_CHANNEL;        //中断通道
+	NVIC_InitStructure.NVIC_IRQChannel = KEY_IRQ_CHANNEL;		//中断通道
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;    //抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;           //排队优先级（子优先级）
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;	//抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		   //排队优先级（子优先级）
 	NVIC_Init(&NVIC_InitStructure);
 }
 
 void Key_RegisterCallback(Key_Callback_t cb) {
-    key_callback = cb;
+	key_callback = cb;
 }
 
