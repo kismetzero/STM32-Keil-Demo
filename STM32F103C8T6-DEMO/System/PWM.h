@@ -1,3 +1,4 @@
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __PWM_H
 #define __PWM_H
 

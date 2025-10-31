@@ -1,3 +1,4 @@
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __BMP280_H
 #define __BMP280_H
 

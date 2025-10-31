@@ -1,3 +1,4 @@
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __DTH11_H
 #define __DTH11_H
 
@@ -12,9 +13,9 @@
 //#define DTH11_GPIO_PIN		GPIO_Pin_13
 //#define DTH11_GPIO_CLK		RCC_APB2Periph_GPIOC
 
-//#define DTH11_HIGH			GPIO_SetBits(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
-//#define DTH11_LOW			GPIO_ResetBits(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
-//#define DTH11_DATA			GPIO_ReadInputDataBit(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
+//#define DTH11_H()				GPIO_SetBits(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
+//#define DTH11_L()				GPIO_ResetBits(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
+//#define DTH11_READ()			GPIO_ReadInputDataBit(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
 
 //void DTH11_Init(void);
 void DHT11_REC_Data(void);

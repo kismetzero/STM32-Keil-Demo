@@ -16,12 +16,6 @@
 //		__asm("nop"); // 空操作，防止优化
 //	}
 //}
-//void Delay_ms(uint32_t ms) {
-//	uint32_t i;
-//	for (i = 0; i < ms; i++) {
-//		Delay_us(1000);
-//	}
-//}
 //void SysTick_Handler(void)
 //{
 //	usTicks++;
@@ -50,12 +44,6 @@
 //	SysTick->CTRL = 0;
 //	SysTick->LOAD = 0;
 //	SysTick->VAL  = 0;
-//}
-//void Delay_ms(uint32_t ms) {
-//	uint32_t i;
-//	for (i = 0; i < ms; i++) {
-//		Delay_us(1000); // 调用微秒级延时函数
-//	}
 //}
 
 //使用TIM定时计数器轮询

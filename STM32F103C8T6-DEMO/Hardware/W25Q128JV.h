@@ -1,3 +1,4 @@
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __W25Q128JV_H
 #define __W25Q128JV_H
 

@@ -1,3 +1,24 @@
+/**
+  ******************************************************************************
+  * @file    HX1838.h
+  * @author  Kismet
+  * @version V0.0.0
+  * @date    NOW
+  * @brief   HX1838红外接收器，使用TIM的输入捕获、从模式和中断
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) ACGBEM.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __HX1838_H
 #define __HX1838_H
 

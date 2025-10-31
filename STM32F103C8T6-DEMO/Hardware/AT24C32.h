@@ -1,3 +1,4 @@
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __AT24C32_H
 #define __AT24C32_H
 

@@ -1,3 +1,4 @@
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __SERIAL_H
 #define __SERIAL_H
 

@@ -1,5 +1,5 @@
 #include "stm32f10x.h"				  // Device header
-
+#include "USART1.h"
 #include "HX1838.h"
 #include "OLED.h"
 
@@ -8,6 +8,12 @@ extern uint8_t NEC_Decode_POS;
 extern uint32_t NEC_Decode_Data;
 
 int main(void) {
+	USART1_Init();
+	USART1_SendByte('H');
+	USART1_SendByte('E');
+	USART1_SendByte('L');
+	USART1_SendByte('L');
+	USART1_SendByte('O');
 	HX1838_Init();
 	OLED_Init();
 	OLED_ShowString(0, 0, "val: ", OLED_8X16);

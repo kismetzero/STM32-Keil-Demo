@@ -449,6 +449,26 @@
               <FileType>5</FileType>
               <FilePath>.\System\Serial.h</FilePath>
             </File>
+            <File>
+              <FileName>USART1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\USART1.c</FilePath>
+            </File>
+            <File>
+              <FileName>USART1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\USART1.h</FilePath>
+            </File>
+            <File>
+              <FileName>SWI2C.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\SWI2C.c</FilePath>
+            </File>
+            <File>
+              <FileName>SWI2C.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\SWI2C.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
