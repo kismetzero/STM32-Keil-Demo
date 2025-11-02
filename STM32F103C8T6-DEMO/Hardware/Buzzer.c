@@ -10,5 +10,5 @@ void Buzzer_Init(void) {
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_Init(BUZZER_GPIO_PORT, &GPIO_InitStructure);
 	
-	Buzzer_OFF();
+	BUZZER_OFF();
 }

@@ -9,14 +9,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define DELAY_TIM_PORT		TIM4
-#define DELAY_TIM_CLK		RCC_APB1Periph_TIM4
-
 //extern volatile uint32_t usTicks;
 
-void Delay_Init(void);
-void Delay_us(uint32_t us);
-void Delay_ms(uint32_t ms);
+//void delay_init(void);
+void delay_us(uint32_t us);
+void delay_ms(uint32_t ms);
 
 #ifdef __cplusplus
 }

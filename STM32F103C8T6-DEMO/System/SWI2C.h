@@ -9,25 +9,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-#define SWI2C_SCL_GPIO_PORT		GPIOB
-#define SWI2C_SCL_GPIO_PIN		GPIO_Pin_8
-#define SWI2C_SCL_GPIO_CLK		RCC_APB2Periph_GPIOB
-
-#define SWI2C_SDA_GPIO_PORT		GPIOB
-#define SWI2C_SDA_GPIO_PIN		GPIO_Pin_9
-#define SWI2C_SDA_GPIO_CLK		RCC_APB2Periph_GPIOB
-
-#define SWI2C_SCL_H()			GPIO_SetBits(SWI2C_SCL_GPIO_PORT, SWI2C_SCL_GPIO_PIN)
-#define SWI2C_SCL_L()			GPIO_ResetBits(SWI2C_SCL_GPIO_PORT, SWI2C_SCL_GPIO_PIN)
-
-#define SWI2C_SDA_H()			GPIO_SetBits(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN)
-#define SWI2C_SDA_L()			GPIO_ResetBits(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN)
-#define SWI2C_SDA_READ()		GPIO_ReadInputDataBit(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN)
-
-#define SWI2C_SCL_WRITE(x)		GPIO_WriteBit(SWI2C_SCL_GPIO_PORT, SWI2C_SCL_GPIO_PIN, (BitAction)x)
-#define SWI2C_SDA_WRITE(x)		GPIO_WriteBit(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN, (BitAction)x)
-
 void SWI2C_Init(void);
+void SWI2C_Start(void);
+void SWI2C_Stop(void);
+void SWI2C_SendACK(void);
+void SWI2C_SendNACK(void);
+uint8_t SWI2C_WaitACK(void);
+void SWI2C_WriteByte(uint8_t Byte);
+uint8_t SWI2C_ReadByte(void);
 
 #ifdef __cplusplus
 }

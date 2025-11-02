@@ -10,6 +10,7 @@
 #include "stm32f10x.h"
 
 void SHT40_Init(void);
+void SHT40_Read(void);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,23 @@
 #include "SWI2C.h"
+#include "delay.h"
+
+#define SWI2C_SCL_GPIO_PORT		GPIOB
+#define SWI2C_SCL_GPIO_PIN		GPIO_Pin_8
+#define SWI2C_SCL_GPIO_CLK		RCC_APB2Periph_GPIOB
+
+#define SWI2C_SDA_GPIO_PORT		GPIOB
+#define SWI2C_SDA_GPIO_PIN		GPIO_Pin_9
+#define SWI2C_SDA_GPIO_CLK		RCC_APB2Periph_GPIOB
+
+#define SWI2C_SCL_H()			GPIO_SetBits(SWI2C_SCL_GPIO_PORT, SWI2C_SCL_GPIO_PIN)
+#define SWI2C_SCL_L()			GPIO_ResetBits(SWI2C_SCL_GPIO_PORT, SWI2C_SCL_GPIO_PIN)
+
+#define SWI2C_SDA_H()			GPIO_SetBits(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN)
+#define SWI2C_SDA_L()			GPIO_ResetBits(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN)
+#define SWI2C_SDA_READ()		GPIO_ReadInputDataBit(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN)
+
+//#define SWI2C_SCL_WRITE(x)		GPIO_WriteBit(SWI2C_SCL_GPIO_PORT, SWI2C_SCL_GPIO_PIN, (BitAction)x)
+//#define SWI2C_SDA_WRITE(x)		GPIO_WriteBit(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN, (BitAction)x)
 
 void SWI2C_Delay(void) {
 
@@ -40,8 +59,8 @@ void SWI2C_Start(void) {
 
 void SWI2C_Stop(void) {
 	// SDA 从低到高，SCL 保持低 -> 高
+	SWI2C_SCL_L();
 	SWI2C_SDA_L();
-	SWI2C_SCL_H();
 	SWI2C_Delay();
 	
 	SWI2C_SCL_H();	// 先释放 SCL
@@ -64,7 +83,7 @@ void SWI2C_SendACK(void) {
 	SWI2C_Delay();
 }
 
-void SWI2C_SendNoACK(void) {
+void SWI2C_SendNACK(void) {
 	SWI2C_SCL_L();
 	SWI2C_SDA_H();	// SDA = 1 表示非应答
 	SWI2C_Delay();
@@ -104,7 +123,7 @@ uint8_t SWI2C_WaitACK(void) {
 void SWI2C_WriteByte(uint8_t Byte) {
 	uint8_t i;
 	
-	for(i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		SWI2C_SCL_L();	// 拉低时钟
 		SWI2C_Delay();
 		
@@ -118,8 +137,6 @@ void SWI2C_WriteByte(uint8_t Byte) {
 		
 		SWI2C_SCL_H();
 		SWI2C_Delay();
-		
-		SWI2C_SCL_L();
 	}
 	SWI2C_SCL_L();
 }
@@ -131,7 +148,7 @@ uint8_t SWI2C_ReadByte(void) {
 	SWI2C_SDA_H();
 	SWI2C_Delay();
 	
-	for(i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		SWI2C_SCL_L();
 		SWI2C_Delay();
 		

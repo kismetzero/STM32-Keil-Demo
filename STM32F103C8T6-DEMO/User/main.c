@@ -1,31 +1,39 @@
 #include "stm32f10x.h"				  // Device header
+#include "delay.h"
 #include "USART1.h"
-#include "HX1838.h"
-#include "OLED.h"
+#include "LED.h"
+#include "AHT20.h"
 
-extern uint8_t NEC_Decode_Status;
-extern uint8_t NEC_Decode_POS;
-extern uint32_t NEC_Decode_Data;
+extern uint8_t AHT20_data[6];
 
 int main(void) {
+	
 	USART1_Init();
-	USART1_SendByte('H');
-	USART1_SendByte('E');
-	USART1_SendByte('L');
-	USART1_SendByte('L');
-	USART1_SendByte('O');
-	HX1838_Init();
-	OLED_Init();
-	OLED_ShowString(0, 0, "val: ", OLED_8X16);
-	OLED_ShowString(0, 16, "addr: ", OLED_8X16);
-	OLED_ShowString(0, 32, "cmd: ", OLED_8X16);
-	OLED_ShowString(0, 48, "cnt: ", OLED_8X16);
-	OLED_Update();
+	LED_Init();
+	LED_ON();
+	USART1_printf("Hello World!\n");
+	
+	delay_ms(1000);
+	
+	AHT20_Init();
+	
+	for(uint8_t i = 0; i < 6; i++) {
+		USART1_printf("AHT20_data[%d] = %d\n", i, AHT20_data[i]);
+	}
+	USART1_printf("tmp = %.3f\n", AHT20_GetTemperature());
+	USART1_printf("hum = %.3f\n", AHT20_GetHumidity());
+	
+	AHT20_Read();
+	delay_ms(1000);
+	USART1_printf("================\n");
+	
+	for(uint8_t i = 0; i < 6; i++) {
+		USART1_printf("AHT20_data[%d] = %d\n", i, AHT20_data[i]);
+	}
+	USART1_printf("tmp = %.3f\n", AHT20_GetTemperature());
+	USART1_printf("hum = %.3f\n", AHT20_GetHumidity());
+	
 	while(1) {
-		OLED_ShowNum(48, 0, NEC_Data.valid, 8, OLED_8X16);
-		OLED_ShowHexNum(48, 16, NEC_Data.address, 8, OLED_8X16);
-		OLED_ShowHexNum(48, 32, NEC_Data.command, 8, OLED_8X16);
-		OLED_ShowNum(48, 48, NEC_Data.count, 8, OLED_8X16);
-		OLED_Update();
+		
 	}
 }

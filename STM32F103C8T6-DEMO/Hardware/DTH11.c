@@ -1,5 +1,5 @@
 #include "DTH11.h"
-#include "Delay.h"
+#include "delay.h"
 
 #define dht11_high GPIO_SetBits(GPIOB, GPIO_Pin_12)
 #define dht11_low GPIO_ResetBits(GPIOB, GPIO_Pin_12)
@@ -58,13 +58,13 @@ void DHT11_Start(void)
 	DH11_GPIO_Init_OUT(); //输出模式
 	
 	dht11_high; //先拉高
-	Delay_us(30);
+	delay_us(30);
 	
 	dht11_low; //拉低电平至少18us
-	Delay_ms(20);
+	delay_ms(20);
 	
 	dht11_high; //拉高电平20~40us
-	Delay_us(30);
+	delay_us(30);
 	
 	DH11_GPIO_Init_IN(); //输入模式
 }
@@ -79,7 +79,7 @@ char DHT11_Rec_Byte(void)
 	for(i=0;i<8;i++) //1个数据就是1个字节byte，1个字节byte有8位bit
 	{
 		while( Read_Data == 0); //从1bit开始，低电平变高电平，等待低电平结束
-		Delay_us(30); //延迟30us是为了区别数据0和数据1，0只有26~28us
+		delay_us(30); //延迟30us是为了区别数据0和数据1，0只有26~28us
 		
 		data <<= 1; //左移
 		
@@ -116,7 +116,7 @@ void DHT11_REC_Data(void)
 		CHECK = DHT11_Rec_Byte(); //接收5个数据
 		
 		dht11_low; //当最后一bit数据传送完毕后，DHT11拉低总线 50us
-		Delay_us(55); //这里延时55us
+		delay_us(55); //这里延时55us
 		dht11_high; //随后总线由上拉电阻拉高进入空闲状态。
 		
 		if(R_H + R_L + T_H + T_L == CHECK) //和检验位对比，判断校验接收到的数据是否正确

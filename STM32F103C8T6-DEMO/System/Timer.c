@@ -1,11 +1,17 @@
 #include "Timer.h"
 
+#define TIMER_TIM_PORT				TIM4
+#define TIMER_TIM_CLK				RCC_APB1Periph_TIM4
+#define TIMER_TIM_IRQ_HANDLER		TIM4_IRQHandler
+#define TIMER_TIM_IRQ_CHANNEL		TIM4_IRQn
+#define TIMER_TIM_IRQ_FLAG			TIM_IT_Update
+
 static Timer_Callback_t timer_callback = 0;
 
 void TIMER_TIM_IRQ_HANDLER(void) {
-	if(TIM_GetITStatus(TIMER_TIM_PORT, TIMER_TIM_IRQ_FLAG) == SET) {
+	if (TIM_GetITStatus(TIMER_TIM_PORT, TIMER_TIM_IRQ_FLAG) == SET) {
 		TIM_ClearITPendingBit(TIMER_TIM_PORT, TIMER_TIM_IRQ_FLAG);
-		if(timer_callback) {
+		if (timer_callback) {
 			timer_callback();
 		}
 	}

@@ -1,6 +1,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USART1_H
-#define __USART1_H
+#ifndef __SSD1306_H
+#define __SSD1306_H
 
 #ifdef __cplusplus
 	extern "C" {
@@ -8,15 +8,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
-#include <stdio.h>
-#include <stdarg.h>
 
-void USART1_Init(void);
-uint8_t USART1_SendByte(uint8_t Byte);
-void USART1_printf(const char *format, ...);
+void SSD1306_Init(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __USART1_H */
+#endif  /* __SSD1306_H */
