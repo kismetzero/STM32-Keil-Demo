@@ -1,6 +1,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __SHT40_H
-#define __SHT40_H
+#ifndef __SG90_H
+#define __SG90_H
 
 #ifdef __cplusplus
 	extern "C" {
@@ -9,13 +9,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-void SHT40_Init(void);
-uint8_t SHT40_Read(void);
-float SHT40_GetTemperature(void);
-float SHT40_GetHumidity(void);
+void SG90_Init(void);
+void SG90_SetAngle(uint8_t Angle);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __SHT40_H */
+#endif  /* __SG90_H */

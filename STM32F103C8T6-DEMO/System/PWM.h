@@ -16,6 +16,7 @@ void PWM_OCSetPrescaler(uint16_t presc);
 void PWM_OCSetFreq(uint16_t freq);
 void PWM_OCSetDuty(uint16_t duty);
 
+void PWM_ICDeInit(void);
 void PWM_ICInit(void);
 uint32_t PWM_ICGetCapture(void);
 uint32_t PWM_ICGetCapture2(void);

@@ -89,8 +89,9 @@ uint8_t AHT20_Read(void) {
 	}
 	for (uint8_t i = 0; i < 6; i++) {
 		AHT20_data[i] = SWI2C_ReadByte();
-		SWI2C_SendACK();
-		if (i == 6 - 1) {
+		if (i < 5) {
+			SWI2C_SendACK();
+		} else {
 			SWI2C_SendNACK();
 		}
 	}
@@ -115,5 +116,3 @@ float AHT20_GetHumidity(void) {
 	raw_humidity = ((AHT20_data[1] << 12) | (AHT20_data[2] << 4)) | (AHT20_data[3] >> 4);
 	return ((raw_humidity * 100.0f) / (1 << 20));
 }
-
-

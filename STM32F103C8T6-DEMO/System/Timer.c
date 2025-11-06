@@ -24,22 +24,22 @@ void Timer_Init(void) {
 	
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	//TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
-	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;				  //时钟划分
-	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;			  //计数模式
+	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;					//时钟划分
+	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;				//计数模式
 	TIM_TimeBaseInitStructure.TIM_Period = 10000 - 1;							//周期，ARR计数器
-	TIM_TimeBaseInitStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1;   //预分频，PSC
+	TIM_TimeBaseInitStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1;	//预分频，PSC
 	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIMER_TIM_PORT, &TIM_TimeBaseInitStructure);
 	
-	TIM_Cmd(TIMER_TIM_PORT, ENABLE);   //使能定时器
+	TIM_Cmd(TIMER_TIM_PORT, ENABLE);	//使能定时器
 }
 
 void Timer_ITInit(void) {
 	TIM_ClearFlag(TIMER_TIM_PORT, TIM_FLAG_Update);		//清除中断标志位，防止初始化后立刻进入中断
 	
-	TIM_ITConfig(TIMER_TIM_PORT, TIMER_TIM_IRQ_FLAG, ENABLE);   //使能中断源
+	TIM_ITConfig(TIMER_TIM_PORT, TIMER_TIM_IRQ_FLAG, ENABLE);	//使能中断源
 	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//设置NVIC中断分组
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//设置NVIC中断分组
 	
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = TIMER_TIM_IRQ_CHANNEL;			  //中断通道

@@ -20,7 +20,7 @@
 //#define SWI2C_SDA_WRITE(x)		GPIO_WriteBit(SWI2C_SDA_GPIO_PORT, SWI2C_SDA_GPIO_PIN, (BitAction)x)
 
 void SWI2C_Delay(void) {
-
+	delay_us(5);
 }
 
 void SWI2C_Init(void) {
