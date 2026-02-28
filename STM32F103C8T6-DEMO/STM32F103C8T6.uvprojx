@@ -535,16 +535,6 @@
               <FilePath>.\Hardware\DS3231.h</FilePath>
             </File>
             <File>
-              <FileName>W25Q128JV.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\W25Q128JV.c</FilePath>
-            </File>
-            <File>
-              <FileName>W25Q128JV.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\W25Q128JV.h</FilePath>
-            </File>
-            <File>
               <FileName>AT24C32.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\AT24C32.c</FilePath>
@@ -613,6 +603,16 @@
               <FileName>SG90.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Hardware\SG90.h</FilePath>
+            </File>
+            <File>
+              <FileName>W25QX.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\W25QX.c</FilePath>
+            </File>
+            <File>
+              <FileName>W25QX.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\W25QX.h</FilePath>
             </File>
           </Files>
         </Group>

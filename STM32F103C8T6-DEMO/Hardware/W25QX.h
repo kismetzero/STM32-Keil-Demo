@@ -1,6 +1,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __W25Q128JV_H
-#define __W25Q128JV_H
+#ifndef __W25QX_H
+#define __W25QX_H
 
 #ifdef __cplusplus
 	extern "C" {
@@ -9,10 +9,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-void W25Q128JV_Init(void);
+void W25QX_Init(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __W25Q128JV_H */
+#endif  /* __W25QX_H */
