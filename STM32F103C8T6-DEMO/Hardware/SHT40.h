@@ -1,13 +1,11 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __SHT40_H
 #define __SHT40_H
+
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
 
 void SHT40_Init(void);
 uint8_t SHT40_Read(void);

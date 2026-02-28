@@ -1,12 +1,6 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __LED_H
 #define __LED_H
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
 #define LED_GPIO_PORT		GPIOC
@@ -16,6 +10,10 @@
 #define LED_ON()			GPIO_ResetBits(LED_GPIO_PORT, LED_GPIO_PIN)
 #define LED_OFF()			GPIO_SetBits(LED_GPIO_PORT, LED_GPIO_PIN)
 #define LED_TOGGLE()		(LED_GPIO_PORT->ODR ^= LED_GPIO_PIN)
+
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 void LED_Init(void);
 

@@ -1,13 +1,11 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __BMP280_H
 #define __BMP280_H
+
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
 
 void BMP280_Init(void);
 

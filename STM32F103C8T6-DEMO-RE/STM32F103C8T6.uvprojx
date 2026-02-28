@@ -393,9 +393,9 @@
               <FilePath>.\System\delay\delay.h</FilePath>
             </File>
             <File>
-              <FileName>delay_STM32_SysTick.c</FileName>
+              <FileName>delay_STM32_DWT.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\System\delay\delay_STM32_SysTick.c</FilePath>
+              <FilePath>.\System\delay\delay_STM32_DWT.c</FilePath>
             </File>
           </Files>
         </Group>

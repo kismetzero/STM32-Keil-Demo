@@ -460,14 +460,14 @@
               <FilePath>.\System\SWI2C.h</FilePath>
             </File>
             <File>
-              <FileName>delay.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\delay.c</FilePath>
-            </File>
-            <File>
               <FileName>delay.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\System\delay.h</FilePath>
+              <FilePath>.\System\delay\delay.h</FilePath>
+            </File>
+            <File>
+              <FileName>delay_STM32_DWT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\delay\delay_STM32_DWT.c</FilePath>
             </File>
           </Files>
         </Group>

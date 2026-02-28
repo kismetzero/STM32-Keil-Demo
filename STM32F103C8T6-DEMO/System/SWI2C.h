@@ -1,13 +1,12 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __SWI2C_H
 #define __SWI2C_H
+
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
 
 void SWI2C_Init(void);
 void SWI2C_Start(void);

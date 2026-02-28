@@ -1,13 +1,11 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __KEY_H
 #define __KEY_H
+
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
 
 // 回调函数类型定义
 typedef void (*Key_Callback_t)(void);

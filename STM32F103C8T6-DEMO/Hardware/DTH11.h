@@ -1,12 +1,6 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __DTH11_H
 #define __DTH11_H
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
 //#define DTH11_GPIO_PORT		GPIOC
@@ -16,6 +10,10 @@
 //#define DTH11_H()				GPIO_SetBits(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
 //#define DTH11_L()				GPIO_ResetBits(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
 //#define DTH11_READ()			GPIO_ReadInputDataBit(DTH11_GPIO_PORT, DTH11_GPIO_PIN)
+
+#ifdef __cplusplus
+	extern "C" {
+#endif
 
 //void DTH11_Init(void);
 void DHT11_REC_Data(void);

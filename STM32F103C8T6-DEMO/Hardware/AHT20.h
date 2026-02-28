@@ -1,13 +1,11 @@
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __AHT20_H
 #define __AHT20_H
+
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f10x.h"
 
 uint8_t AHT20_Init(void);			// 初始化并校准 return 0 为成功
 uint8_t AHT20_Read(void);			// 开启测量并读取 return 0 为成功
