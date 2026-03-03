@@ -11,14 +11,16 @@
 // 定义返回状态码
 typedef enum {
     AHT20_OK = 0,
-	AHT20_BUSY,
-	AHT20_CAL_ERRO,
-	AHT20_I2C_ERRO
+	AHT20_ERR_BUSY,
+	AHT20_ERR_CAL,
+	AHT20_ERR_I2C_ERR
 } AHT20_status_t;
 
-AHT20_status_t AHT20_Init(i2c_if_handle_t *hi2c);
-AHT20_status_t AHT20_Read(void);						// 开启测量并读取 return 0 为成功
-AHT20_status_t AHT20_Reset(void);						// 软复位 return 0 为成功
+extern
+
+AHT20_status_t AHT20_Init(i2c_if_handle_t *hi2c);		// 设备初始化
+AHT20_status_t AHT20_Reset(void);						// 软复位
+AHT20_status_t AHT20_Measure(void);						// 开启测量并读取
 float AHT20_GetTemperature(void);
 float AHT20_GetHumidity(void);
 

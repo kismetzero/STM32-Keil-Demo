@@ -1,6 +1,6 @@
 #include "i2c_if.h"
 
-i2c_if_status_t i2c_master_transmit(i2c_if_handle_t *hi2c, uint8_t dev_addr, uint8_t *data, uint16_t size) {
+i2c_if_status_t i2c_master_transmit(i2c_if_handle_t *hi2c, uint8_t dev_addr, const uint8_t *data, uint16_t size) {
     if (!hi2c || !hi2c->start || !hi2c->write_byte || !hi2c->stop) {
         return I2C_IF_ERR_INVALID_PARAM;
     }

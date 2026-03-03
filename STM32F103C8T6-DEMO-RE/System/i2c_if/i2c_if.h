@@ -30,13 +30,13 @@ typedef struct {
     i2c_if_status_t (*read_byte)(void *user_data, uint8_t *data, bool ack);
     
     // 封装好的高层原子操作 (可选，方便直接调用)
-    i2c_if_status_t (*mem_write)(void *user_data, uint8_t dev_addr, uint16_t mem_addr, uint8_t *buf, uint16_t len);
+    i2c_if_status_t (*mem_write)(void *user_data, uint8_t dev_addr, uint16_t mem_addr, const uint8_t *buf, uint16_t len);
     i2c_if_status_t (*mem_read)(void *user_data, uint8_t dev_addr, uint16_t mem_addr, uint8_t *buf, uint16_t len);
 
 } i2c_if_handle_t;
 
 // 通用 API 声明 (应用层只调用这些)
-i2c_if_status_t i2c_master_transmit(i2c_if_handle_t *hi2c, uint8_t dev_addr, uint8_t *data, uint16_t size);
+i2c_if_status_t i2c_master_transmit(i2c_if_handle_t *hi2c, uint8_t dev_addr, const uint8_t *data, uint16_t size);
 i2c_if_status_t i2c_master_receive(i2c_if_handle_t *hi2c, uint8_t dev_addr, uint8_t *data, uint16_t size);
 
 #ifdef __cplusplus

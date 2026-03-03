@@ -19,7 +19,7 @@ int main(void) {
 	USART1_printf("AHT20-hum: %f \n", AHT20_GetHumidity());
 	while(1) {
 		delay_ms(1000);
-		AHT20_Read();
+		AHT20_Measure();
 		USART1_printf("AHT20-temp: %f \n", AHT20_GetTemperature());
 		USART1_printf("AHT20-hum: %f \n", AHT20_GetHumidity());
 	}
