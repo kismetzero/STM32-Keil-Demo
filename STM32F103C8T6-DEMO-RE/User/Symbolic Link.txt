@@ -1,0 +1,1 @@
+mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\USART1.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\USART\USART1.c"

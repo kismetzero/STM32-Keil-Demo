@@ -1,9 +1,9 @@
 #include "AHT20.h"
 #include "SWI2C.h"
-#include "delay.h"
+#include "delay/delay.h"
 
 // AHT20 I2C 地址
-#define AHT20_I2C_ADDR			0x38
+#define AHT20_I2C_ADDR		0x38	// 0011 1000
 
 uint8_t AHT20_data[6];
 

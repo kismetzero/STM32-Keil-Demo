@@ -383,28 +383,6 @@
       <Groups>
         <Group>
           <GroupName>Libraries</GroupName>
-          <Files>
-            <File>
-              <FileName>OLED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Libraries\OLED.c</FilePath>
-            </File>
-            <File>
-              <FileName>OLED.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Libraries\OLED.h</FilePath>
-            </File>
-            <File>
-              <FileName>OLED_Data.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Libraries\OLED_Data.c</FilePath>
-            </File>
-            <File>
-              <FileName>OLED_Data.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Libraries\OLED_Data.h</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>System</GroupName>
@@ -420,16 +398,6 @@
               <FilePath>.\System\PWM.h</FilePath>
             </File>
             <File>
-              <FileName>Timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\Timer.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\System\Timer.h</FilePath>
-            </File>
-            <File>
               <FileName>Serial.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\System\Serial.c</FilePath>
@@ -438,16 +406,6 @@
               <FileName>Serial.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\Serial.h</FilePath>
-            </File>
-            <File>
-              <FileName>USART1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\USART1.c</FilePath>
-            </File>
-            <File>
-              <FileName>USART1.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\System\USART1.h</FilePath>
             </File>
             <File>
               <FileName>SWI2C.c</FileName>
@@ -460,14 +418,34 @@
               <FilePath>.\System\SWI2C.h</FilePath>
             </File>
             <File>
+              <FileName>Timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\Timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\Timer.h</FilePath>
+            </File>
+            <File>
+              <FileName>USART1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\USART1.c</FilePath>
+            </File>
+            <File>
+              <FileName>USART1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\USART1.h</FilePath>
+            </File>
+            <File>
               <FileName>delay.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\System\delay\delay.h</FilePath>
+              <FilePath>.\System\delay.h</FilePath>
             </File>
             <File>
               <FileName>delay_STM32_DWT.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\System\delay\delay_STM32_DWT.c</FilePath>
+              <FilePath>.\System\delay_STM32_DWT.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -475,64 +453,14 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
-              <FileName>LED.c</FileName>
+              <FileName>AHT20.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\LED.c</FilePath>
+              <FilePath>.\Hardware\AHT20.c</FilePath>
             </File>
             <File>
-              <FileName>LED.h</FileName>
+              <FileName>AHT20.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\LED.h</FilePath>
-            </File>
-            <File>
-              <FileName>Key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\Key.c</FilePath>
-            </File>
-            <File>
-              <FileName>Key.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\Key.h</FilePath>
-            </File>
-            <File>
-              <FileName>Buzzer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\Buzzer.c</FilePath>
-            </File>
-            <File>
-              <FileName>Buzzer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\Buzzer.h</FilePath>
-            </File>
-            <File>
-              <FileName>DTH11.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\DTH11.c</FilePath>
-            </File>
-            <File>
-              <FileName>DTH11.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\DTH11.h</FilePath>
-            </File>
-            <File>
-              <FileName>HX1838.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\HX1838.c</FilePath>
-            </File>
-            <File>
-              <FileName>HX1838.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\HX1838.h</FilePath>
-            </File>
-            <File>
-              <FileName>DS3231.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\DS3231.c</FilePath>
-            </File>
-            <File>
-              <FileName>DS3231.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\DS3231.h</FilePath>
+              <FilePath>.\Hardware\AHT20.h</FilePath>
             </File>
             <File>
               <FileName>AT24C32.c</FileName>
@@ -545,26 +473,6 @@
               <FilePath>.\Hardware\AT24C32.h</FilePath>
             </File>
             <File>
-              <FileName>SHT40.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\SHT40.c</FilePath>
-            </File>
-            <File>
-              <FileName>SHT40.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\SHT40.h</FilePath>
-            </File>
-            <File>
-              <FileName>AHT20.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\AHT20.c</FilePath>
-            </File>
-            <File>
-              <FileName>AHT20.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\AHT20.h</FilePath>
-            </File>
-            <File>
               <FileName>BMP280.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\BMP280.c</FilePath>
@@ -573,6 +481,26 @@
               <FileName>BMP280.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Hardware\BMP280.h</FilePath>
+            </File>
+            <File>
+              <FileName>DHT11.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\DHT11.c</FilePath>
+            </File>
+            <File>
+              <FileName>DHT11.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\DHT11.h</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\DS3231.c</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\DS3231.h</FilePath>
             </File>
             <File>
               <FileName>EC11.c</FileName>
@@ -585,14 +513,14 @@
               <FilePath>.\Hardware\EC11.h</FilePath>
             </File>
             <File>
-              <FileName>SSD1306.c</FileName>
+              <FileName>HX1838.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\SSD1306.c</FilePath>
+              <FilePath>.\Hardware\HX1838.c</FilePath>
             </File>
             <File>
-              <FileName>SSD1306.h</FileName>
+              <FileName>HX1838.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\SSD1306.h</FilePath>
+              <FilePath>.\Hardware\HX1838.h</FilePath>
             </File>
             <File>
               <FileName>SG90.c</FileName>
@@ -603,6 +531,26 @@
               <FileName>SG90.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Hardware\SG90.h</FilePath>
+            </File>
+            <File>
+              <FileName>SHT40.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\SHT40.c</FilePath>
+            </File>
+            <File>
+              <FileName>SHT40.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\SHT40.h</FilePath>
+            </File>
+            <File>
+              <FileName>SSD1306.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\SSD1306.c</FilePath>
+            </File>
+            <File>
+              <FileName>SSD1306.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\SSD1306.h</FilePath>
             </File>
             <File>
               <FileName>W25QX.c</FileName>

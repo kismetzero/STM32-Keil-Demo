@@ -388,14 +388,39 @@
           <GroupName>System</GroupName>
           <Files>
             <File>
+              <FileName>USART1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\USART1.c</FilePath>
+            </File>
+            <File>
+              <FileName>USART1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\USART1.h</FilePath>
+            </File>
+            <File>
               <FileName>delay.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\System\delay\delay.h</FilePath>
+              <FilePath>.\System\delay.h</FilePath>
             </File>
             <File>
               <FileName>delay_STM32_DWT.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\System\delay\delay_STM32_DWT.c</FilePath>
+              <FilePath>.\System\delay_STM32_DWT.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_if.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\i2c_if.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_if_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\i2c_if\i2c_if_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_if_STM32_STD_SW.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\i2c_if\i2c_if_STM32_STD_SW.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -403,14 +428,14 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
-              <FileName>LED.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\LED.c</FilePath>
+              <FileName>AHT20.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\AHT20\AHT20.h</FilePath>
             </File>
             <File>
-              <FileName>LED.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\LED.h</FilePath>
+              <FileName>AHT20_i2c_if.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\AHT20\AHT20_i2c_if.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,4 +1,4 @@
-#include "DTH11.h"
+#include "DHT11.h"
 #include "delay.h"
 
 #define dht11_high GPIO_SetBits(GPIOB, GPIO_Pin_12)
@@ -21,7 +21,7 @@ unsigned int rec_data[4];
 
 
 //对于stm32来说，是输出
-void DH11_GPIO_Init_OUT(void)
+void DHT11_GPIO_Init_OUT(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
@@ -36,7 +36,7 @@ void DH11_GPIO_Init_OUT(void)
 }
 
 //对于stm32来说，是输入
-void DH11_GPIO_Init_IN(void)
+void DHT11_GPIO_Init_IN(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
@@ -55,7 +55,7 @@ void DH11_GPIO_Init_IN(void)
 //主机发送开始信号
 void DHT11_Start(void)
 {
-	DH11_GPIO_Init_OUT(); //输出模式
+	DHT11_GPIO_Init_OUT(); //输出模式
 	
 	dht11_high; //先拉高
 	delay_us(30);
@@ -66,7 +66,7 @@ void DHT11_Start(void)
 	dht11_high; //拉高电平20~40us
 	delay_us(30);
 	
-	DH11_GPIO_Init_IN(); //输入模式
+	DHT11_GPIO_Init_IN(); //输入模式
 }
 
 
