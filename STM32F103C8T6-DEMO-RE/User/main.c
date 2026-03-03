@@ -1,6 +1,7 @@
 #include "stm32f10x.h"
 #include "delay.h"
 #include "i2c_if.h"
+#include "SHT40.h"
 #include "AHT20.h"
 #include "USART1.h"
 
@@ -12,14 +13,21 @@ int main(void) {
 	i2c_if_handle_t swi2c;
 	i2c_if_SWI2C_CreateHandle(&swi2c);
 	swi2c.init(swi2c.user_data);
+	SHT40_Init(&swi2c);
 	AHT20_Init(&swi2c);
 	
-	USART1_printf("Helllo World!!! \n");
+	USART1_printf("\n-----------------\n");
+	USART1_printf("SHT40-temp: %f \n", SHT40_GetTemperature());
+	USART1_printf("SHT40-hum: %f \n", SHT40_GetHumidity());
 	USART1_printf("AHT20-temp: %f \n", AHT20_GetTemperature());
 	USART1_printf("AHT20-hum: %f \n", AHT20_GetHumidity());
 	while(1) {
 		delay_ms(1000);
+		SHT40_Measure();
 		AHT20_Measure();
+		USART1_printf("\n-----------------\n");
+		USART1_printf("SHT40-temp: %f \n", SHT40_GetTemperature());
+		USART1_printf("SHT40-hum: %f \n", SHT40_GetHumidity());
 		USART1_printf("AHT20-temp: %f \n", AHT20_GetTemperature());
 		USART1_printf("AHT20-hum: %f \n", AHT20_GetHumidity());
 	}

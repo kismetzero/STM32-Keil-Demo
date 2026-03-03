@@ -5,17 +5,20 @@
 // AHT20 I2C 地址
 #define AHT20_I2C_ADDR		0x38	// 0011 1000
 
-static uint8_t AHT20_RawData[6];
+uint8_t AHT20_RawData[6];
 static i2c_if_handle_t *g_hi2c;
 
 AHT20_status_t AHT20_Init(i2c_if_handle_t *hi2c) {
+	if (!hi2c) { return AHT20_ERR_I2C_ERR; }
 	g_hi2c = hi2c;
 	i2c_if_status_t i2c_if_ret;
-	static const uint8_t InitCommand[] = {0xBE, 0x08, 0x00};
+	static const uint8_t AHT20_InitCommand[] = {0xBE, 0x08, 0x00};
+	
 	delay_ms(50);
 	
-	i2c_if_ret = i2c_master_transmit(g_hi2c, AHT20_I2C_ADDR, InitCommand, 3);
+	i2c_if_ret = i2c_master_transmit(g_hi2c, AHT20_I2C_ADDR, AHT20_InitCommand, 3);
 	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	
 	delay_ms(50);
 	
 	i2c_if_ret = i2c_master_receive(g_hi2c, AHT20_I2C_ADDR, AHT20_RawData, 6);
@@ -28,18 +31,21 @@ AHT20_status_t AHT20_Init(i2c_if_handle_t *hi2c) {
 
 AHT20_status_t AHT20_Reset(void) {
 	i2c_if_status_t i2c_if_ret;
-	static const uint8_t ResetCommand[] = {0xBA};
-	i2c_if_ret = i2c_master_transmit(g_hi2c, AHT20_I2C_ADDR, ResetCommand, 1);
+	static const uint8_t AHT20_ResetCommand[] = {0xBA};
+	
+	i2c_if_ret = i2c_master_transmit(g_hi2c, AHT20_I2C_ADDR, AHT20_ResetCommand, 1);
 	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	
 	return AHT20_OK;
 }
 
 AHT20_status_t AHT20_Measure(void) {
 	i2c_if_status_t i2c_if_ret;
-	static const uint8_t StartMeasureCommand[] = {0xAC, 0x33, 0x00};
+	static const uint8_t AHT20_MeasureCommand[] = {0xAC, 0x33, 0x00};
 	
-	i2c_if_ret = i2c_master_transmit(g_hi2c, AHT20_I2C_ADDR, StartMeasureCommand, 3);
+	i2c_if_ret = i2c_master_transmit(g_hi2c, AHT20_I2C_ADDR, AHT20_MeasureCommand, 3);
 	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	
 	delay_ms(80);
 	
 	i2c_if_ret = i2c_master_receive(g_hi2c, AHT20_I2C_ADDR, AHT20_RawData, 6);

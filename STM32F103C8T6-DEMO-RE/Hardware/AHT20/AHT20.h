@@ -16,8 +16,6 @@ typedef enum {
 	AHT20_ERR_I2C_ERR
 } AHT20_status_t;
 
-extern
-
 AHT20_status_t AHT20_Init(i2c_if_handle_t *hi2c);		// 设备初始化
 AHT20_status_t AHT20_Reset(void);						// 软复位
 AHT20_status_t AHT20_Measure(void);						// 开启测量并读取
