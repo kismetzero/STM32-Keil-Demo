@@ -13,20 +13,43 @@ typedef enum {
     SHT40_OK = 0,
 	SHT40_ERR_BUSY,
 	SHT40_ERR_CRC,
-	SHT40_ERR_I2C_ERR
+	SHT40_ERR_I2C_ERR,
+	SHT40_ERR_INVALID_PARAM
 } SHT40_status_t;
 
+// 测量精度
 typedef enum {
-    SHT40_HIGH_REP = 0,
-    SHT40_MED_REP,
-    SHT40_LOW_REP
+    SHT40_REP_HIGH = 0,
+    SHT40_REP_MED,
+    SHT40_REP_LOW
 } SHT40_Repeatability_t;
 
-SHT40_status_t SHT40_Init(i2c_if_handle_t *hi2c);		// 设备初始化
-SHT40_status_t SHT40_Reset(void);						// 软复位
-SHT40_status_t SHT40_Measure(void);						// 开启测量并读取
-float SHT40_GetTemperature(void);
-float SHT40_GetHumidity(void);
+// 内置加热器
+typedef enum {
+    SHT40_HEATER_200MW1S = 0,
+    SHT40_HEATER_200MW100MS,
+	SHT40_HEATER_110MW1S,
+    SHT40_HEATER_110MW100MS,
+	SHT40_HEATER_20MW1S,
+    SHT40_HEATER_20MW100MS
+} SHT40_Heater_t;
+
+// 定义 I2C 总线句柄结构体
+typedef struct {
+	i2c_if_handle_t *hi2c;
+	uint8_t i2c_addr;
+	uint8_t raw_data[6];
+	SHT40_Repeatability_t repeatability;
+	float temperature;
+	float humidity;
+} SHT40_handle_t;
+
+SHT40_status_t SHT40_Init(SHT40_handle_t *dev);			// 设备初始化
+SHT40_status_t SHT40_Reset(SHT40_handle_t *dev);		// 软复位
+SHT40_status_t SHT40_Measure(SHT40_handle_t *dev);		// 开启测量并读取
+
+// 开启内置加热器测量并读取（！！慎用！！）
+SHT40_status_t SHT40_HeaterMeasure(SHT40_handle_t *dev, SHT40_Heater_t heater);	
 
 #ifdef __cplusplus
 }

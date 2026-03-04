@@ -17,7 +17,7 @@ typedef enum {
     I2C_IF_ERR_INVALID_PARAM
 } i2c_if_status_t;
 
-// 定义 I2C 设备句柄结构体
+// 定义 I2C 总线句柄结构体
 typedef struct {
     // 用户自定义数据指针（用于区分不同的实例，如 I2C1, I2C2 或 软模拟引脚组）
     void *user_data; 
