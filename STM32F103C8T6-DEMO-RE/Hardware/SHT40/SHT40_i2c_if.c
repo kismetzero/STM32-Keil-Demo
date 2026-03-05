@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // AHT20 默认 I2C 地址
-#define SHT40_DEFAULT_I2C_ADDR 0x44 // 0100 0100
+#define SHT40_DEFAULT_I2C_ADDR	0x44	// 0100 0100
 
 static const uint8_t SHT40_MeasureCommand[] = {0xFD, 0xF6, 0xE0};
 static const uint8_t SHT40_MeasureDelay[] = {16, 8, 6};
@@ -38,13 +38,13 @@ static bool SHT40_CheckCRC(uint8_t *data) {
 static float SHT40_GetTemperature(uint8_t *data) {
 	uint32_t raw_temperature;
 	raw_temperature = (data[0]  << 8) | data[1];
-	return -45.0f + 175.0f * raw_temperature / 65535.0f;
+	return (-45.0f + 175.0f * raw_temperature / 65535.0f);
 }
 
 static float SHT40_GetHumidity(uint8_t *data) {
 	uint32_t raw_humidity;
 	raw_humidity = (data[3] << 8) | data[4];
-	return -6.0f + 125.0f * raw_humidity / 65535.0f;
+	return (-6.0f + 125.0f * raw_humidity / 65535.0f);
 }
 
 SHT40_status_t SHT40_Init(SHT40_handle_t *dev) {

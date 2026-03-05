@@ -34,14 +34,14 @@ typedef enum {
     SHT40_HEATER_20MW100MS
 } SHT40_Heater_t;
 
-// 定义 I2C 总线句柄结构体
+// 定义 SHT40 设备句柄结构体
 typedef struct {
 	i2c_if_handle_t *hi2c;
 	uint8_t i2c_addr;
 	uint8_t raw_data[6];
-	SHT40_Repeatability_t repeatability;
 	float temperature;
 	float humidity;
+	SHT40_Repeatability_t repeatability;
 } SHT40_handle_t;
 
 SHT40_status_t SHT40_Init(SHT40_handle_t *dev);			// 设备初始化
