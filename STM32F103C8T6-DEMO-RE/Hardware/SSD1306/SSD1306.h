@@ -1,8 +1,6 @@
 #ifndef __SSD1306_H
 #define __SSD1306_H
 
-#include "stm32f10x.h"
-
 #ifdef __cplusplus
 	extern "C" {
 #endif

@@ -1,1 +1,3 @@
-mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\SHT40_i2c_if.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\SHT40\SHT40_i2c_if.c"
+mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\AHT20_i2c_bus.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\AHT20\AHT20_i2c_bus.c"
+
+mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus_core.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus\i2c_bus_core.c"

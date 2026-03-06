@@ -1,5 +1,4 @@
 #include "AHT20.h"
-#include "i2c_if.h"
 #include "delay.h"
 
 //#include "USART1.h"	// debug
@@ -22,22 +21,22 @@ static float AHT20_GetHumidity(uint8_t *data) {
 AHT20_Status_t AHT20_Init(AHT20_Handle_t *dev) {
 //	USART1_printf("debug: AHT20_Iint: 1 \n");
 	if (!dev) { return AHT20_ERR_INVALID_PARAM; }
-	if (!dev->hi2c) { return AHT20_ERR_I2C_ERR; }
+	if (!dev->hi2c || !dev->hi2c->ops) { return AHT20_ERR_I2C_ERR; }
 	if (dev->i2c_addr == 0) { dev->i2c_addr = AHT20_DEFAULT_I2C_ADDR; }
-	i2c_if_status_t i2c_if_ret;
+	i2c_bus_status_t i2c_ret;
 	static const uint8_t AHT20_InitCommand[] = {0xBE, 0x08, 0x00};
 	
 	delay_ms(50);
 	
-	i2c_if_ret = i2c_master_transmit(dev->hi2c, dev->i2c_addr, AHT20_InitCommand, 3);
+	i2c_ret = i2c_bus_transmit(dev->hi2c, dev->i2c_addr, AHT20_InitCommand, 3);
 //	USART1_printf("debug: AHT20_Iint: i2c_ret1 = %d \n", i2c_if_ret);
-	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	if (i2c_ret != I2C_BUS_OK) { return AHT20_ERR_I2C_ERR; }
 	
 	delay_ms(50);
 	
-	i2c_if_ret = i2c_master_receive(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
+	i2c_ret = i2c_bus_receive(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
 //	USART1_printf("debug: AHT20_Iint: i2c_ret2 = %d \n", i2c_if_ret);
-	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	if (i2c_ret != I2C_BUS_OK) { return AHT20_ERR_I2C_ERR; }
 	
 	// 检查校准位
 	if (!(dev->raw_data[0] & (1 << 3))) { return AHT20_ERR_CAL; }
@@ -49,12 +48,12 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *dev) {
 
 AHT20_Status_t AHT20_Reset(AHT20_Handle_t *dev) {
 	if (!dev) { return AHT20_ERR_INVALID_PARAM; }
-	if (!dev->hi2c) { return AHT20_ERR_I2C_ERR; }
-	i2c_if_status_t i2c_if_ret;
+	if (!dev->hi2c || !dev->hi2c->ops) { return AHT20_ERR_I2C_ERR; }
+	i2c_bus_status_t i2c_ret;
 	static const uint8_t AHT20_ResetCommand[] = {0xBA};
 	
-	i2c_if_ret = i2c_master_transmit(dev->hi2c, dev->i2c_addr, AHT20_ResetCommand, 1);
-	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	i2c_ret = i2c_bus_transmit(dev->hi2c, dev->i2c_addr, AHT20_ResetCommand, 1);
+	if (i2c_ret != I2C_BUS_OK) { return AHT20_ERR_I2C_ERR; }
 	
 	return AHT20_OK;
 }
@@ -62,19 +61,19 @@ AHT20_Status_t AHT20_Reset(AHT20_Handle_t *dev) {
 AHT20_Status_t AHT20_Measure(AHT20_Handle_t *dev) {
 //	USART1_printf("debug: AHT20_Measure: 1 \n");
 	if (!dev) { return AHT20_ERR_INVALID_PARAM; }
-	if (!dev->hi2c) { return AHT20_ERR_I2C_ERR; }
-	i2c_if_status_t i2c_if_ret;
+	if (!dev->hi2c || !dev->hi2c->ops) { return AHT20_ERR_I2C_ERR; }
+	i2c_bus_status_t i2c_ret;
 	static const uint8_t AHT20_MeasureCommand[] = {0xAC, 0x33, 0x00};
 	
-	i2c_if_ret = i2c_master_transmit(dev->hi2c, dev->i2c_addr, AHT20_MeasureCommand, 3);
+	i2c_ret = i2c_bus_transmit(dev->hi2c, dev->i2c_addr, AHT20_MeasureCommand, 3);
 //	USART1_printf("debug: AHT20_Measure: i2c_ret1 = %d \n", i2c_if_ret);
-	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	if (i2c_ret != I2C_BUS_OK) { return AHT20_ERR_I2C_ERR; }
 	
 	delay_ms(80);
 	
-	i2c_if_ret = i2c_master_receive(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
+	i2c_ret = i2c_bus_receive(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
 //	USART1_printf("debug: AHT20_Measure: i2c_ret2 = %d \n", i2c_if_ret);
-	if (i2c_if_ret != I2C_IF_OK) { return AHT20_ERR_I2C_ERR; }
+	if (i2c_ret != I2C_BUS_OK) { return AHT20_ERR_I2C_ERR; }
 	
 	// 检查是否忙
 	if (dev->raw_data[0] & (1 << 7)) { return AHT20_ERR_BUSY; }

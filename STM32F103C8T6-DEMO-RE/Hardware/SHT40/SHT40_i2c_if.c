@@ -47,7 +47,7 @@ static float SHT40_GetHumidity(uint8_t *data) {
 	return (-6.0f + 125.0f * raw_humidity / 65535.0f);
 }
 
-SHT40_status_t SHT40_Init(SHT40_handle_t *dev) {
+SHT40_Status_t SHT40_Init(SHT40_Handle_t *dev) {
 	if (!dev) { return SHT40_ERR_INVALID_PARAM; }
 	if (!dev->hi2c) { return SHT40_ERR_I2C_ERR; }
 	if (dev->i2c_addr == 0) { dev->i2c_addr = SHT40_DEFAULT_I2C_ADDR; }
@@ -55,7 +55,7 @@ SHT40_status_t SHT40_Init(SHT40_handle_t *dev) {
 	return SHT40_OK;
 }
 
-SHT40_status_t SHT40_Reset(SHT40_handle_t *dev) {
+SHT40_Status_t SHT40_Reset(SHT40_Handle_t *dev) {
 	if (!dev) { return SHT40_ERR_INVALID_PARAM; }
 	if (!dev->hi2c) { return SHT40_ERR_I2C_ERR; }
 	i2c_if_status_t i2c_if_ret;
@@ -67,7 +67,7 @@ SHT40_status_t SHT40_Reset(SHT40_handle_t *dev) {
 	return SHT40_OK;
 }
 
-SHT40_status_t SHT40_Measure(SHT40_handle_t *dev) {
+SHT40_Status_t SHT40_Measure(SHT40_Handle_t *dev) {
 	if (!dev) { return SHT40_ERR_INVALID_PARAM; }
 	if (!dev->hi2c) { return SHT40_ERR_I2C_ERR; }
 	i2c_if_status_t i2c_if_ret;
@@ -88,7 +88,7 @@ SHT40_status_t SHT40_Measure(SHT40_handle_t *dev) {
 	return SHT40_OK;
 }
 
-SHT40_status_t SHT40_HeaterMeasure(SHT40_handle_t *dev, SHT40_Heater_t heater) {
+SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *dev, SHT40_Heater_t heater) {
 	if (!dev) { return SHT40_ERR_INVALID_PARAM; }
 	if (!dev->hi2c) { return SHT40_ERR_I2C_ERR; }
 	if (heater < 0 || heater > SHT40_HEATER_20MW100MS) { return SHT40_ERR_INVALID_PARAM; }

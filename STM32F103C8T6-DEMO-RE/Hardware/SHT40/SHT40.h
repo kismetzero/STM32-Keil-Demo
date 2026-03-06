@@ -15,7 +15,7 @@ typedef enum {
 	SHT40_ERR_CRC,
 	SHT40_ERR_I2C_ERR,
 	SHT40_ERR_INVALID_PARAM
-} SHT40_status_t;
+} SHT40_Status_t;
 
 // 测量精度
 typedef enum {
@@ -42,14 +42,14 @@ typedef struct {
 	float temperature;
 	float humidity;
 	SHT40_Repeatability_t repeatability;
-} SHT40_handle_t;
+} SHT40_Handle_t;
 
-SHT40_status_t SHT40_Init(SHT40_handle_t *dev);			// 设备初始化
-SHT40_status_t SHT40_Reset(SHT40_handle_t *dev);		// 软复位
-SHT40_status_t SHT40_Measure(SHT40_handle_t *dev);		// 开启测量并读取
+SHT40_Status_t SHT40_Init(SHT40_Handle_t *dev);			// 设备初始化
+SHT40_Status_t SHT40_Reset(SHT40_Handle_t *dev);		// 软复位
+SHT40_Status_t SHT40_Measure(SHT40_Handle_t *dev);		// 开启测量并读取
 
 // 开启内置加热器测量并读取（！！慎用！！）
-SHT40_status_t SHT40_HeaterMeasure(SHT40_handle_t *dev, SHT40_Heater_t heater);	
+SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *dev, SHT40_Heater_t heater);	
 
 #ifdef __cplusplus
 }
