@@ -1,3 +1,5 @@
 mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\AHT20_i2c_bus.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\AHT20\AHT20_i2c_bus.c"
 
-mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus_core.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus\i2c_bus_core.c"
+mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus_stm32_std_lib_sw_oop.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus\i2c_bus_stm32_std_lib_sw_oop.c"
+
+mklink "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\spi_bus_stm32_std_lib_sw_oop.c" "C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\spi_bus\spi_bus_stm32_std_lib_sw_oop.c"

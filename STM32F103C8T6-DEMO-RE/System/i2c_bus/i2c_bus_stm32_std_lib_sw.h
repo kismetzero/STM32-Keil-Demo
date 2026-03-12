@@ -19,7 +19,7 @@ typedef struct {
 	uint32_t		sda_gpio_clk;
 } i2c_bus_stm32_std_lib_sw_config_t;
 
-void i2c_bus_stm32_std_lib_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_lib_sw_config_t *cfg);
+i2c_bus_status_t i2c_bus_stm32_std_lib_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_lib_sw_config_t *cfg);
 
 #ifdef __cplusplus
 }

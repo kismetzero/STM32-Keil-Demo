@@ -413,19 +413,39 @@
               <FilePath>.\System\i2c_bus\i2c_bus.h</FilePath>
             </File>
             <File>
-              <FileName>i2c_bus_stm32_std_lib_sw.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std_lib_sw.h</FilePath>
-            </File>
-            <File>
               <FileName>i2c_bus_core.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\System\i2c_bus_core.c</FilePath>
             </File>
             <File>
-              <FileName>i2c_bus_stm32_std_lib_sw_oop_b.c</FileName>
+              <FileName>i2c_bus_stm32_std_lib_sw.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std_lib_sw.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_bus_stm32_std_lib_sw_oop.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\System\i2c_bus_stm32_std_lib_sw_oop_b.c</FilePath>
+              <FilePath>.\System\i2c_bus_stm32_std_lib_sw_oop.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi_bus.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\spi_bus.h</FilePath>
+            </File>
+            <File>
+              <FileName>spi_bus_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\spi_bus_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi_bus_stm32_std_lib_sw.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\spi_bus_stm32_std_lib_sw.h</FilePath>
+            </File>
+            <File>
+              <FileName>spi_bus_stm32_std_lib_sw_oop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\spi_bus_stm32_std_lib_sw_oop.c</FilePath>
             </File>
           </Files>
         </Group>

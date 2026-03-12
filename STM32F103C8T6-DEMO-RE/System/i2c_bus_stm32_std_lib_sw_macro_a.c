@@ -1,1 +1,0 @@
-C:/PF/Project/KeilProjects/STM32-Keil-Demo/STM32F103C8T6-DEMO-RE/System/i2c_bus/i2c_bus_stm32_std_lib_sw_macro_a.c

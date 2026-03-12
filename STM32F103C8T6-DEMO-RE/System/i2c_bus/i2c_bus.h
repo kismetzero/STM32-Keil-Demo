@@ -23,8 +23,8 @@ typedef struct {
 	i2c_bus_status_t (*init)(void *user_data);
 	i2c_bus_status_t (*start)(void *user_data);
 	i2c_bus_status_t (*stop)(void *user_data);
-	i2c_bus_status_t (*write_byte)(void *user_data, uint8_t data);
-	i2c_bus_status_t (*read_byte)(void *user_data, uint8_t *data, bool ack);
+	i2c_bus_status_t (*write_byte)(void *user_data, uint8_t byte);
+	i2c_bus_status_t (*read_byte)(void *user_data, uint8_t *byte, bool ack);
 
 	// 封装好的高层原子操作 (可选，方便直接调用)
 	i2c_bus_status_t (*write_bytes)(void *user_data, uint8_t dev_addr, const uint8_t *data, uint16_t len);
@@ -35,14 +35,12 @@ typedef struct {
 typedef struct {
 	// 用户自定义数据指针（用于区分不同的实例，如 I2C1, I2C2 或 软模拟引脚组）
     void *user_data; 
-	
 	i2c_bus_ops_t *ops;
 } i2c_bus_handle_t;
 
-
 // 通用 API 声明 (应用层只调用这些)
-i2c_bus_status_t i2c_bus_transmit(i2c_bus_handle_t *hi2c, uint8_t dev_addr, const uint8_t *data, uint16_t len);
-i2c_bus_status_t i2c_bus_receive(i2c_bus_handle_t *hi2c, uint8_t dev_addr, uint8_t *data, uint16_t len);
+i2c_bus_status_t i2c_master_transmit(i2c_bus_handle_t *handle, uint8_t dev_addr, const uint8_t *data, uint16_t len);
+i2c_bus_status_t i2c_master_receive(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len);
 
 #ifdef __cplusplus
 }
