@@ -1,5 +1,4 @@
 #include "spi_bus.h"
-#include <stddef.h>
 
 spi_bus_status_t spi_cs_low(spi_dev_handle_t *handle) {
 	if (handle == NULL || handle->cs == NULL || handle->cs->ops == NULL || handle->cs->ops->low == NULL) {

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 	extern "C" {
@@ -23,12 +24,17 @@ typedef struct {
 	i2c_bus_status_t (*init)(void *user_data);
 	i2c_bus_status_t (*start)(void *user_data);
 	i2c_bus_status_t (*stop)(void *user_data);
-	i2c_bus_status_t (*write_byte)(void *user_data, uint8_t byte);
+	i2c_bus_status_t (*send_ack)(void *user_data, bool ack);
+	i2c_bus_status_t (*wait_ack)(void *user_data);
 	i2c_bus_status_t (*read_byte)(void *user_data, uint8_t *byte, bool ack);
-
-	// 封装好的高层原子操作 (可选，方便直接调用)
-	i2c_bus_status_t (*write_bytes)(void *user_data, uint8_t dev_addr, const uint8_t *data, uint16_t len);
-	i2c_bus_status_t (*read_bytes)(void *user_data, uint8_t dev_addr, uint8_t *data, uint16_t len);
+	i2c_bus_status_t (*write_byte)(void *user_data, uint8_t byte, bool wait);
+	
+//	i2c_bus_status_t (*read_mem)(void *user_data, uint8_t dev_addr, uint8_t mem_addr, uint8_t *data, uint16_t len);
+//	i2c_bus_status_t (*write_mem)(void *user_data, uint8_t dev_addr, uint8_t mem_addr, const uint8_t *data, uint16_t len);
+//	
+//	i2c_bus_status_t (*master_receive)(void *user_data, uint8_t dev_addr, uint8_t *data, uint16_t len);
+//	i2c_bus_status_t (*master_transmit)(void *user_data, uint8_t dev_addr, const uint8_t *data, uint16_t len);
+	
 } i2c_bus_ops_t;
 
 // 定义 I2C 总线句柄结构体
@@ -38,7 +44,11 @@ typedef struct {
 	i2c_bus_ops_t *ops;
 } i2c_bus_handle_t;
 
-// 通用 API 声明 (应用层只调用这些)
+i2c_bus_status_t i2c_start(i2c_bus_handle_t *handle);
+i2c_bus_status_t i2c_stop(i2c_bus_handle_t *handle);
+i2c_bus_status_t i2c_read_byte(i2c_bus_handle_t *handle, uint8_t *byte, bool ack);
+i2c_bus_status_t i2c_write_byte(i2c_bus_handle_t *handle, uint8_t byte, bool wait);
+
 i2c_bus_status_t i2c_master_transmit(i2c_bus_handle_t *handle, uint8_t dev_addr, const uint8_t *data, uint16_t len);
 i2c_bus_status_t i2c_master_receive(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len);
 

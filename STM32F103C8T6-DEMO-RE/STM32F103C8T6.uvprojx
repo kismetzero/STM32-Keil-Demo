@@ -453,14 +453,19 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
+              <FileName>AHT20_i2c_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\AHT20_i2c_bus.c</FilePath>
+            </File>
+            <File>
               <FileName>AHT20_i2c_bus.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Hardware\AHT20_i2c_bus.h</FilePath>
             </File>
             <File>
-              <FileName>AHT20_i2c_bus.c</FileName>
+              <FileName>W25QX_spi_bus.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\AHT20_i2c_bus.c</FilePath>
+              <FilePath>.\Hardware\W25QX_spi_bus.c</FilePath>
             </File>
             <File>
               <FileName>W25QX_spi_bus.h</FileName>
@@ -468,9 +473,14 @@
               <FilePath>.\Hardware\W25QX_spi_bus.h</FilePath>
             </File>
             <File>
-              <FileName>W25QX_spi_bus.c</FileName>
+              <FileName>SHT40_i2c_bus.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\W25QX_spi_bus.c</FilePath>
+              <FilePath>.\Hardware\SHT40\SHT40_i2c_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>SHT40_i2c_bus.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\SHT40\SHT40_i2c_bus.h</FilePath>
             </File>
           </Files>
         </Group>

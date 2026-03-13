@@ -1,5 +1,4 @@
 #include "spi_bus_stm32_std_lib_sw.h"
-#include <stddef.h>
 #include "delay.h"
 
 static inline void SWSPI_Delay(void) {
