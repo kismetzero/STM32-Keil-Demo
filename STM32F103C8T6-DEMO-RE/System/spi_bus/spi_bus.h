@@ -58,6 +58,9 @@ typedef struct {
 	spi_cs_handle_t *cs;		// 关联的片选控制器
 } spi_dev_handle_t;
 
+spi_bus_status_t spi_cs_low(spi_dev_handle_t *handle);
+spi_bus_status_t spi_cs_high(spi_dev_handle_t *handle);
+
 spi_bus_status_t spi_master_transmit(spi_dev_handle_t *handle, const uint8_t *data, uint16_t len);
 spi_bus_status_t spi_master_receive(spi_dev_handle_t *handle, uint8_t *data, uint16_t len);
 

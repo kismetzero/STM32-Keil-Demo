@@ -1,4 +1,4 @@
-#include "AHT20.h"
+#include "AHT20_i2c_bus.h"
 #include "delay.h"
 
 //#include "USART1.h"	// debug

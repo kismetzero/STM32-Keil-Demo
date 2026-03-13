@@ -453,24 +453,24 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
-              <FileName>AHT20.h</FileName>
+              <FileName>AHT20_i2c_bus.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\AHT20\AHT20.h</FilePath>
-            </File>
-            <File>
-              <FileName>SHT40.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\SHT40\SHT40.h</FilePath>
-            </File>
-            <File>
-              <FileName>BMP280.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\BMP280.h</FilePath>
+              <FilePath>.\Hardware\AHT20_i2c_bus.h</FilePath>
             </File>
             <File>
               <FileName>AHT20_i2c_bus.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\AHT20_i2c_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>W25QX_spi_bus.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\W25QX_spi_bus.h</FilePath>
+            </File>
+            <File>
+              <FileName>W25QX_spi_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\W25QX_spi_bus.c</FilePath>
             </File>
           </Files>
         </Group>
