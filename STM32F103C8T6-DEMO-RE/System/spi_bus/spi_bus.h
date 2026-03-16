@@ -65,6 +65,7 @@ spi_bus_status_t spi_cs_high(spi_dev_handle_t *handle);
 spi_bus_status_t spi_master_transmit(spi_dev_handle_t *handle, const uint8_t *data, uint16_t len);
 spi_bus_status_t spi_master_receive(spi_dev_handle_t *handle, uint8_t *data, uint16_t len);
 
+
 #ifdef __cplusplus
 }
 #endif

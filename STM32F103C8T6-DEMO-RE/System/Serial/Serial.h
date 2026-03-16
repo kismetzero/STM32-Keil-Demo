@@ -1,13 +1,13 @@
 #ifndef __SERIAL_H
 #define __SERIAL_H
 
-#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
 void Serial_Init(void);
+void Serial_Printf(const char *format, ...);
 
 #ifdef __cplusplus
 }

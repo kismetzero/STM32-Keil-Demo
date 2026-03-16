@@ -2,7 +2,6 @@
 #define __W25QX_H
 
 #include "stdint.h"
-#include "spi_bus.h"
 
 #ifdef __cplusplus
 	extern "C" {

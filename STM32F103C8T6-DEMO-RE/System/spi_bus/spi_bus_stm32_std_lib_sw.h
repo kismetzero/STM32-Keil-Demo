@@ -1,8 +1,8 @@
 #ifndef __SPI_BUS_STM32_STD_LIB_SW_H
 #define __SPI_BUS_STM32_STD_LIB_SW_H
 
-#include "stm32f10x.h"
 #include "spi_bus.h"
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {

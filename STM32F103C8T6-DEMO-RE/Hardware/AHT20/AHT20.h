@@ -2,7 +2,6 @@
 #define __AHT20_H
 
 #include "stdint.h"
-#include "i2c_bus.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -19,7 +18,7 @@ typedef enum {
 
 // 定义 AHT20 设备句柄结构体
 typedef struct {
-	i2c_bus_handle_t *hi2c;
+	void *hi2c;
 	uint8_t i2c_addr;
 	uint8_t raw_data[6];
 	float temperature;

@@ -1,4 +1,5 @@
-#include "SHT40_i2c_bus.h"
+#include "SHT40.h"
+#include "i2c_bus.h"
 #include "delay.h"
 
 // AHT20 默认 I2C 地址
@@ -59,7 +60,7 @@ SHT40_Status_t SHT40_Reset(SHT40_Handle_t *dev) {
 	i2c_bus_status_t i2c_ret;
 	static const uint8_t SHT40_ResetCommand[] = {0x94};
 	
-	i2c_ret = i2c_master_transmit(dev->hi2c, dev->i2c_addr, SHT40_ResetCommand, 1);
+	i2c_ret = i2c_write_data(dev->hi2c, dev->i2c_addr, SHT40_ResetCommand, 1);
 	if (i2c_ret != I2C_BUS_OK) { return SHT40_ERR_I2C_ERR; }
 	
 	return SHT40_OK;
@@ -70,12 +71,12 @@ SHT40_Status_t SHT40_Measure(SHT40_Handle_t *dev) {
 	if (!dev->hi2c) { return SHT40_ERR_I2C_ERR; }
 	i2c_bus_status_t i2c_ret;
 	
-	i2c_ret = i2c_master_transmit(dev->hi2c, dev->i2c_addr, &SHT40_MeasureCommand[dev->repeatability], 1);
+	i2c_ret = i2c_write_data(dev->hi2c, dev->i2c_addr, &SHT40_MeasureCommand[dev->repeatability], 1);
 	if (i2c_ret != I2C_BUS_OK) { return SHT40_ERR_I2C_ERR; }
 	
 	delay_ms(SHT40_MeasureDelay[dev->repeatability]);
 	
-	i2c_ret = i2c_master_receive(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
+	i2c_ret = i2c_read_data(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
 	if (i2c_ret != I2C_BUS_OK) { return SHT40_ERR_I2C_ERR; }
 	
 	if (!SHT40_CheckCRC(dev->raw_data)) { return SHT40_ERR_CRC; }
@@ -93,12 +94,12 @@ SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *dev, SHT40_Heater_t heater) {
 	return SHT40_ERR_BUSY;
 	i2c_bus_status_t i2c_ret;
 	
-	i2c_ret = i2c_master_transmit(dev->hi2c, dev->i2c_addr, &SHT40_HeaterMeasureCommand[heater], 1);
+	i2c_ret = i2c_write_data(dev->hi2c, dev->i2c_addr, &SHT40_HeaterMeasureCommand[heater], 1);
 	if (i2c_ret != I2C_BUS_OK) { return SHT40_ERR_I2C_ERR; }
 	
 	delay_ms(SHT40_HeaterMeasureDelay[(heater % 2)]);
 	
-	i2c_ret = i2c_master_receive(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
+	i2c_ret = i2c_read_data(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
 	if (i2c_ret != I2C_BUS_OK) { return SHT40_ERR_I2C_ERR; }
 	
 	if (!SHT40_CheckCRC(dev->raw_data)) { return SHT40_ERR_CRC; }

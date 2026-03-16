@@ -383,20 +383,47 @@
       <Groups>
         <Group>
           <GroupName>Libraries</GroupName>
+          <Files>
+            <File>
+              <FileName>elog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog.c</FilePath>
+            </File>
+            <File>
+              <FileName>elog.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog.h</FilePath>
+            </File>
+            <File>
+              <FileName>elog_async.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog_async.c</FilePath>
+            </File>
+            <File>
+              <FileName>elog_buf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog_buf.c</FilePath>
+            </File>
+            <File>
+              <FileName>elog_cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog_cfg.h</FilePath>
+            </File>
+            <File>
+              <FileName>elog_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog_port.c</FilePath>
+            </File>
+            <File>
+              <FileName>elog_utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Libraries\EasyLogger\elog_utils.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>System</GroupName>
           <Files>
-            <File>
-              <FileName>USART1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\USART1.c</FilePath>
-            </File>
-            <File>
-              <FileName>USART1.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\System\USART1.h</FilePath>
-            </File>
             <File>
               <FileName>delay.h</FileName>
               <FileType>5</FileType>
@@ -447,30 +474,35 @@
               <FileType>1</FileType>
               <FilePath>.\System\spi_bus_stm32_std_lib_sw_oop.c</FilePath>
             </File>
+            <File>
+              <FileName>Serial.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\Serial.h</FilePath>
+            </File>
+            <File>
+              <FileName>Serial_stm32_std_lib_usart1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\Serial_stm32_std_lib_usart1.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
+              <FileName>AHT20.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\AHT20\AHT20.h</FilePath>
+            </File>
+            <File>
               <FileName>AHT20_i2c_bus.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\AHT20_i2c_bus.c</FilePath>
+              <FilePath>.\Hardware\AHT20\AHT20_i2c_bus.c</FilePath>
             </File>
             <File>
-              <FileName>AHT20_i2c_bus.h</FileName>
+              <FileName>SHT40.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\AHT20_i2c_bus.h</FilePath>
-            </File>
-            <File>
-              <FileName>W25QX_spi_bus.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\W25QX_spi_bus.c</FilePath>
-            </File>
-            <File>
-              <FileName>W25QX_spi_bus.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\W25QX_spi_bus.h</FilePath>
+              <FilePath>.\Hardware\SHT40\SHT40.h</FilePath>
             </File>
             <File>
               <FileName>SHT40_i2c_bus.c</FileName>
@@ -478,9 +510,14 @@
               <FilePath>.\Hardware\SHT40\SHT40_i2c_bus.c</FilePath>
             </File>
             <File>
-              <FileName>SHT40_i2c_bus.h</FileName>
+              <FileName>W25QX.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\SHT40\SHT40_i2c_bus.h</FilePath>
+              <FilePath>.\Hardware\W25QX\W25QX.h</FilePath>
+            </File>
+            <File>
+              <FileName>W25QX_spi_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\W25QX\W25QX_spi_bus.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -491,6 +528,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\User\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>system.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\system.h</FilePath>
             </File>
           </Files>
         </Group>
