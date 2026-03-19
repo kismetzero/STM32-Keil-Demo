@@ -40,21 +40,14 @@ i2c_bus_status_t i2c_send_byte(i2c_bus_handle_t *handle, uint8_t byte, bool wait
 }
 
 i2c_bus_status_t i2c_read_data(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len) {
-    if (handle == NULL) {
-		log_e("i2c_read_data: Fail handle == NULL");
+    if (handle == NULL || handle->ops == NULL) {
+		log_e("i2c_read_data: Fail handle/ops == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
-	if (handle->ops == NULL) {
-		log_e("i2c_read_data: Fail handle->ops == NULL");
-		return I2C_BUS_ERR_INVALID_PARAM;
-	}
-	
 	if (data == NULL) {
 		log_e("i2c_read_data: Fail data == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
 	if (len == 0) {
 		log_e("i2c_read_data: Fail len == 0");
 		return I2C_BUS_ERR_INVALID_PARAM;
@@ -70,7 +63,6 @@ i2c_bus_status_t i2c_read_data(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			log_e("i2c_read_data: Fail @ START (Code: %d). Bus busy?", ret);
 			return ret;
 		}
-		
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		ret = handle->ops->send_byte(handle->user_data, (dev_addr << 1) | 0x01, true);
 		if (ret != I2C_BUS_OK) {
@@ -78,18 +70,16 @@ i2c_bus_status_t i2c_read_data(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			log_e("i2c_read_data: Fail @ dev_addr(R)=0x%02X NACK. Device not found?", dev_addr);
 			return I2C_BUS_ERR_DEV_NONE;
 		}
-		
 		// 读取数据
 		for (uint16_t i = 0; i < len; i++) {
 			bool ack = (i < len - 1); // 最后一个字节发送 NACK
 			ret = handle->ops->recv_byte(handle->user_data, &data[i], ack);
 			if (ret != I2C_BUS_OK) {
-				log_e("i2c_read_data: FAIL @ dev_addr(R)=0x%02X DATA[%d] (Code: %d)", dev_addr, i, ret);
+				log_e("i2c_read_data: Fail @ dev_addr(R)=0x%02X DATA[%d] (Code: %d)", dev_addr, i, ret);
 				handle->ops->stop(handle->user_data);
 				return ret;
 			}
 		}
-		
 		// 发送停止信号
 		ret = handle->ops->stop(handle->user_data);
 		if (ret != I2C_BUS_OK) {
@@ -97,31 +87,24 @@ i2c_bus_status_t i2c_read_data(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			log_e("i2c_read_data: Fail @ STOP (Code: %d). Bus may be stuck!", ret);
 			return ret;
 		}
-		
+
 		log_d("i2c_read_data: Success");
 		return I2C_BUS_OK;
 	}
-	
+
 	log_e("i2c_read_data: Fail handle->ops->??? NONE");
 	return I2C_BUS_ERR_INVALID_PARAM;
 }
 
 i2c_bus_status_t i2c_write_data(i2c_bus_handle_t *handle, uint8_t dev_addr, const uint8_t *data, uint16_t len) {
-	if (handle == NULL) {
-		log_e("i2c_write_data: Fail handle == NULL");
+	if (handle == NULL || handle->ops == NULL) {
+		log_e("i2c_write_data: Fail handle/ops == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
-	if (handle->ops == NULL) {
-		log_e("i2c_write_data: Fail handle->ops == NULL");
-		return I2C_BUS_ERR_INVALID_PARAM;
-	}
-	
 	if (data == NULL) {
 		log_e("i2c_write_data: Fail data == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
 	if (len == 0) {
 		log_e("i2c_write_data: Fail len == 0");
 		return I2C_BUS_ERR_INVALID_PARAM;
@@ -136,7 +119,6 @@ i2c_bus_status_t i2c_write_data(i2c_bus_handle_t *handle, uint8_t dev_addr, cons
 			log_e("i2c_write_data: Fail @ START (Code: %d). Bus busy?", ret);
 			return ret;
 		}
-		
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		ret = handle->ops->send_byte(handle->user_data, (dev_addr << 1) | 0x00, true);
 		if (ret != I2C_BUS_OK) {
@@ -144,7 +126,6 @@ i2c_bus_status_t i2c_write_data(i2c_bus_handle_t *handle, uint8_t dev_addr, cons
 			log_e("i2c_write_data: Fail @ dev_addr(W)=0x%02X NACK. Device not found?", dev_addr);
 			return I2C_BUS_ERR_DEV_NONE;
 		}
-		
 		// 发送数据
 		for (uint16_t i = 0; i < len; i++) {
 			ret = handle->ops->send_byte(handle->user_data, data[i], true);
@@ -154,7 +135,6 @@ i2c_bus_status_t i2c_write_data(i2c_bus_handle_t *handle, uint8_t dev_addr, cons
 				return ret;
 			}
 		}
-		
 		// 发送停止信号
 		ret = handle->ops->stop(handle->user_data);
 		if (ret != I2C_BUS_OK) {
@@ -180,21 +160,14 @@ i2c_bus_status_t i2c_write_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 }
 
 i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
-	if (handle == NULL) {
-		log_e("i2c_read_regs: Fail handle == NULL");
+	if (handle == NULL || handle->ops == NULL) {
+		log_e("i2c_read_regs: Fail handle/ops == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
-	if (handle->ops == NULL) {
-		log_e("i2c_read_regs: Fail handle->ops == NULL");
-		return I2C_BUS_ERR_INVALID_PARAM;
-	}
-	
 	if (data == NULL) {
 		log_e("i2c_read_regs: Fail data == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
 	if (len == 0) {
 		log_e("i2c_read_regs: Fail len == 0");
 		return I2C_BUS_ERR_INVALID_PARAM;
@@ -210,7 +183,6 @@ i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			log_e("i2c_read_regs: Fail @ START (Code: %d). Bus busy?", ret);
 			return ret;
 		}
-		
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		ret = handle->ops->send_byte(handle->user_data, (dev_addr << 1) | 0x00, true);
 		if (ret != I2C_BUS_OK) {
@@ -218,7 +190,6 @@ i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			log_e("i2c_read_regs: Fail @ dev_addr(W)=0x%02X NACK. Device not found?", dev_addr);
 			return I2C_BUS_ERR_DEV_NONE;
 		}
-		
 		// 发送寄存器地址
 		ret = handle->ops->send_byte(handle->user_data, reg_addr, true);
 		if (ret != I2C_BUS_OK) {
@@ -226,7 +197,6 @@ i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			handle->ops->stop(handle->user_data);
 			return ret;
 		}
-		
 		// 重复起始信号
 		ret = handle->ops->start(handle->user_data);
 		if (ret != I2C_BUS_OK) {
@@ -235,7 +205,6 @@ i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			handle->ops->stop(handle->user_data); 
 			return ret;
 		}
-		
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		ret = handle->ops->send_byte(handle->user_data, (dev_addr << 1) | 0x01, true);
 		if (ret != I2C_BUS_OK) {
@@ -243,18 +212,16 @@ i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 			log_e("i2c_read_regs: Fail @ dev_addr(R)=0x%02X NACK. Device not found?", dev_addr);
 			return I2C_BUS_ERR_DEV_NONE;
 		}
-		
 		// 读取数据
 		for (uint16_t i = 0; i < len; i++) {
 			bool ack = (i < len - 1); // 最后一个字节发送 NACK
 			ret = handle->ops->recv_byte(handle->user_data, &data[i], ack);
 			if (ret != I2C_BUS_OK) {
-				log_e("i2c_read_regs: FAIL @ dev_addr(R)=0x%02X DATA[%d] (Code: %d)", dev_addr, i, ret);
+				log_e("i2c_read_regs: Fail @ dev_addr(R)=0x%02X DATA[%d] (Code: %d)", dev_addr, i, ret);
 				handle->ops->stop(handle->user_data);
 				return ret;
 			}
 		}
-		
 		// 发送停止信号
 		ret = handle->ops->stop(handle->user_data);
 		if (ret != I2C_BUS_OK) {
@@ -272,21 +239,14 @@ i2c_bus_status_t i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8
 }
 
 i2c_bus_status_t i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, uint16_t len) {
-	if (handle == NULL) {
-		log_e("i2c_write_regs: Fail handle == NULL");
+	if (handle == NULL || handle->ops == NULL) {
+		log_e("i2c_write_regs: Fail handle/ops == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
-	if (handle->ops == NULL) {
-		log_e("i2c_write_regs: Fail handle->ops == NULL");
-		return I2C_BUS_ERR_INVALID_PARAM;
-	}
-	
 	if (data == NULL) {
 		log_e("i2c_write_regs: Fail data == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
 	if (len == 0) {
 		log_e("i2c_write_regs: Fail len == 0");
 		return I2C_BUS_ERR_INVALID_PARAM;
@@ -301,7 +261,6 @@ i2c_bus_status_t i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint
 			log_e("i2c_write_regs: Fail @ START (Code: %d). Bus busy?", ret);
 			return ret;
 		}
-		
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		ret = handle->ops->send_byte(handle->user_data, (dev_addr << 1) | 0x00, true);
 		if (ret != I2C_BUS_OK) {
@@ -309,7 +268,6 @@ i2c_bus_status_t i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint
 			log_e("i2c_write_regs: Fail @ dev_addr(W)=0x%02X NACK. Device not found?", dev_addr);
 			return I2C_BUS_ERR_DEV_NONE;
 		}
-		
 		// 发送寄存器地址
 		ret = handle->ops->send_byte(handle->user_data, reg_addr, true);
 		if (ret != I2C_BUS_OK) {
@@ -317,7 +275,6 @@ i2c_bus_status_t i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint
 			handle->ops->stop(handle->user_data);
 			return ret;
 		}
-			
 		// 发送数据
 		for (uint16_t i = 0; i < len; i++) {
 			ret = handle->ops->send_byte(handle->user_data, data[i], true);
@@ -327,7 +284,6 @@ i2c_bus_status_t i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint
 				return ret;
 			}
 		}
-		
 		// 发送停止信号
 		ret = handle->ops->stop(handle->user_data);
 		if (ret != I2C_BUS_OK) {

@@ -17,11 +17,18 @@ spi_bus_handle_t swspi_bus_handle;
 spi_bus_stm32_std_lib_sw_bus_config_t swspi_bus_cfg;
 void spi_bus_config_init();
 
+spi_cs_handle_t w25qx_cs_handle;
+spi_bus_stm32_std_lib_sw_cs_config_t w25qx_cs_cfg;
+spi_dev_handle_t w25qx_dev_handle;
+void w25qx_config_init();
+void w25qx_test();
+
 void system_init() {
 	delay_init();
 	elog_config_init();
 	i2c_config_init();
 	spi_bus_config_init();
+	w25qx_config_init();
 }
 
 void elog_config_init() {
@@ -50,60 +57,76 @@ void i2c_config_init() {
 	
 	i2c_bus_status_t ret = i2c_bus_stm32_std_lib_sw_create_handle(&swi2c_handle, &swi2c_cfg);
 	if (ret != I2C_BUS_OK) {
-		log_e("i2c_config_init: erro");
+		log_e("i2c_config_init: Fail (Code: %d)", ret);
 	}
 }
 
 void spi_bus_config_init() {
 	swspi_bus_cfg.miso_gpio_clk		=	RCC_APB2Periph_GPIOA;
-	swspi_bus_cfg.miso_gpio_pin		=	GPIO_Pin_4;
+	swspi_bus_cfg.miso_gpio_pin		=	GPIO_Pin_6;
 	swspi_bus_cfg.miso_gpio_port	=	GPIOA;
 	
 	swspi_bus_cfg.mosi_gpio_clk		=	RCC_APB2Periph_GPIOA;
-	swspi_bus_cfg.mosi_gpio_pin		=	GPIO_Pin_6;
+	swspi_bus_cfg.mosi_gpio_pin		=	GPIO_Pin_7;
 	swspi_bus_cfg.mosi_gpio_port	=	GPIOA;
 	
 	swspi_bus_cfg.sck_gpio_clk		=	RCC_APB2Periph_GPIOA;
 	swspi_bus_cfg.sck_gpio_pin		=	GPIO_Pin_5;
 	swspi_bus_cfg.sck_gpio_port		=	GPIOA;
 	
+	swspi_bus_cfg.mode				=	0;
+	
 	spi_bus_status_t ret = spi_bus_stm32_std_lib_sw_create_bus_handle(&swspi_bus_handle, &swspi_bus_cfg);
 	if (ret != SPI_BUS_OK) {
-		log_e("spi_bus_config_init: erro");
+		log_e("spi_bus_config_init: Fail (Code: %d)", ret);
 	}
 }
 
-//void w25qx_test() {
-//	spi_dev_handle_t w25qx;
-//	spi_bus_handle_t swspi_bus_handle;
-//	spi_bus_stm32_std_lib_sw_bus_config_t swspi_bus_cfg;
-//	spi_cs_handle_t swspi_cs_handle;
-//	spi_bus_stm32_std_lib_sw_cs_config_t swspi_cs_cfg;
-//	spi_test(&swspi_bus_cfg, &swspi_cs_cfg);
-//	spi_bus_status_t ret;
-//	ret = spi_bus_stm32_std_lib_sw_create_bus_handle(&swspi_bus_handle, &swspi_bus_cfg);
-//	Serial_Printf("spi_bus_stm32_std_lib_sw_create_bus_handle: %d \n", ret);
-//	ret = spi_bus_stm32_std_lib_sw_create_cs_handle(&swspi_cs_handle, &swspi_cs_cfg);
-//	Serial_Printf("spi_bus_stm32_std_lib_sw_create_cs_handle: %d \n", ret);
-//	w25qx.bus = &swspi_bus_handle;
-//	w25qx.cs = &swspi_cs_handle;
-//	uint8_t cmd[] = {0x9F};
-//	uint8_t ret_data[8] = {0};
-//	
-//	ret = spi_cs_low(&w25qx);
-//	Serial_Printf("spi_cs_low: %d \n", ret);
-//	ret = spi_master_transmit(&w25qx, cmd, 1);
-//	Serial_Printf("spi_master_transmit: %d \n", ret);
-//	
-//	ret = spi_master_receive(&w25qx, ret_data, 3);
-//	Serial_Printf("spi_master_receive: %d \n", ret);
-//	ret = spi_cs_high(&w25qx);
-//	Serial_Printf("spi_cs_high: %d \n", ret);
-//	
-//	uint16_t did = (ret_data[1] << 8) | ret_data[2];
-//	Serial_Printf("w25q64 mid: %d \n", ret_data[0]);
-//	Serial_Printf("w25q64 did: %d \n", did);
-//}
+void w25qx_config_init() {
+	w25qx_cs_cfg.cs_gpio_clk	=	RCC_APB2Periph_GPIOA;
+	w25qx_cs_cfg.cs_gpio_pin	=	GPIO_Pin_4;
+	w25qx_cs_cfg.cs_gpio_port	=	GPIOA;
+	
+	spi_bus_status_t ret = spi_bus_stm32_std_lib_sw_create_cs_handle(&w25qx_cs_handle, &w25qx_cs_cfg);
+	if (ret != SPI_BUS_OK) {
+		log_e("w25qx_config_init: Fail (Code: %d)", ret);
+	}
+	
+	w25qx_dev_handle.bus	=	&swspi_bus_handle;
+	w25qx_dev_handle.cs		=	&w25qx_cs_handle;
+}
+
+void w25qx_test() {
+	spi_bus_status_t ret;
+	uint8_t cmd[] = {0x9F};
+	uint8_t ret_data[8] = {0};
+	
+	ret = spi_cs_low(&w25qx_dev_handle);
+	if (ret != SPI_BUS_OK) {
+		log_e("w25qx_test: spi_cs_low: Fail (Code: %d)", ret);
+		return;
+	}
+	ret = spi_master_transmit(&w25qx_dev_handle, cmd, 1);
+	if (ret != SPI_BUS_OK) {
+		log_e("w25qx_test: spi_master_transmit: Fail (Code: %d)", ret);
+		return;
+	}
+	
+	ret = spi_master_receive(&w25qx_dev_handle, ret_data, 3);
+	if (ret != SPI_BUS_OK) {
+		log_e("w25qx_test: spi_master_receive: Fail (Code: %d)", ret);
+		return;
+	}
+	ret = spi_cs_high(&w25qx_dev_handle);
+	if (ret != SPI_BUS_OK) {
+		log_e("w25qx_test: spi_cs_high: Fail (Code: %d)", ret);
+		return;
+	}
+	
+	uint16_t did = (ret_data[1] << 8) | ret_data[2];
+	log_i("w25qx_test: mid: %d \n", ret_data[0]);
+	log_i("w25qx_test: did: %d \n", did);
+}
 
 //void aht20_test() {
 //	AHT20_Handle_t sensor;

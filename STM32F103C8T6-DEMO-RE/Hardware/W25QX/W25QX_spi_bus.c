@@ -1,6 +1,6 @@
 #include "W25QX.h"
 #include "spi_bus.h"
 
-void W25QX_Init(void) {
-	
+W25QX_Status_t W25QX_Init(W25QX_Handle_t *dev) {
+	return 0;
 }

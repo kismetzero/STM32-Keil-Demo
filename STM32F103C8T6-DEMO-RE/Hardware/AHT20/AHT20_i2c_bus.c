@@ -126,5 +126,6 @@ AHT20_Status_t AHT20_Measure(AHT20_Handle_t *dev) {
 	dev->temperature = AHT20_GetTemperature(dev->raw_data);
 	dev->humidity = AHT20_GetHumidity(dev->raw_data);
 	
+	log_d("AHT20_Measure: Success Temp=%f, Humid=%f", dev->temperature, dev->humidity);
 	return AHT20_OK;
 }

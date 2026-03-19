@@ -2,6 +2,9 @@
 #include "i2c_bus.h"
 #include "delay.h"
 
+#define LOG_TAG "sht40"
+#include "elog.h"
+
 // AHT20 默认 I2C 地址
 #define SHT40_DEFAULT_I2C_ADDR	0x44	// 0100 0100
 
