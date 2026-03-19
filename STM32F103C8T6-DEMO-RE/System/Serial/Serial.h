@@ -13,4 +13,4 @@ void Serial_Printf(const char *format, ...);
 }
 #endif
 
-#endif  /* __SERIAL_H */
+#endif	/* __SERIAL_H */

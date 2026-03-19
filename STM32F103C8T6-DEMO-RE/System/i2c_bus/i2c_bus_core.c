@@ -40,7 +40,7 @@ i2c_bus_status_t i2c_send_byte(i2c_bus_handle_t *handle, uint8_t byte, bool wait
 }
 
 i2c_bus_status_t i2c_read_data(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len) {
-    if (handle == NULL || handle->ops == NULL) {
+	if (handle == NULL || handle->ops == NULL) {
 		log_e("i2c_read_data: Fail handle/ops == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
@@ -110,7 +110,7 @@ i2c_bus_status_t i2c_write_data(i2c_bus_handle_t *handle, uint8_t dev_addr, cons
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
 	
-    if (handle->ops->start != NULL && handle->ops->send_byte != NULL && handle->ops->stop != NULL) {
+	if (handle->ops->start != NULL && handle->ops->send_byte != NULL && handle->ops->stop != NULL) {
 		i2c_bus_status_t ret;
 		
 		// 发送起始信号

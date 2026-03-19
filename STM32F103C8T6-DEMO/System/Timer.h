@@ -1,8 +1,6 @@
 #ifndef __TIMER_H
 #define __TIMER_H
 
-#include "stm32f10x.h"
-
 #ifdef __cplusplus
 	extern "C" {
 #endif
@@ -18,4 +16,4 @@ void Timer_ITRegisterCallback(Timer_Callback_t cb);
 }
 #endif
 
-#endif  /* __TIMER_H */
+#endif	/* __TIMER_H */

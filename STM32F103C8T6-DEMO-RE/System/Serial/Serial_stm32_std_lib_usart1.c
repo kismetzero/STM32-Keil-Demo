@@ -6,9 +6,9 @@
 #define SERIAL_USARTX			USART1
 #define SERIAL_USARTX_CLK		RCC_APB2Periph_USART1
 #define SERIAL_GPIO_CLK			RCC_APB2Periph_GPIOA
-#define SERIAL_GPIO_PORT		GPIOA
 #define SERIAL_TX_GPIO_PIN		GPIO_Pin_9
 #define SERIAL_RX_GPIO_PIN		GPIO_Pin_10
+#define SERIAL_GPIO_PORT		GPIOA
 #define SERIAL_BaudRate			115200
 
 //int fputc(int ch, FILE *f) {
@@ -51,16 +51,16 @@ uint8_t SERIAL_SendByte(uint8_t Byte) {
 
 void Serial_Printf(const char *format, ...) {
 	char buffer[255];
-	va_list args;     // 定义可变参数列表
+	va_list args;		// 定义可变参数列表
 
-    // 将可变参数列表格式化到 buffer 中
-    va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
+	// 将可变参数列表格式化到 buffer 中
+	va_start(args, format);
+	vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
 	
 	// 通过 SERIAL_SendByte 逐字节发送
-    for (int i = 0; buffer[i] != '\0'; i++) {
-        SERIAL_SendByte(buffer[i]);
-    }
+	for (int i = 0; buffer[i] != '\0'; i++) {
+		SERIAL_SendByte(buffer[i]);
+	}
 }
 

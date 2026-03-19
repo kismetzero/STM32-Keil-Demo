@@ -17,10 +17,10 @@ typedef enum {
 
 // SPI 模式定义 (CPOL, CPHA)
 typedef enum {
-    SPI_MODE_0 = 0, // CPOL=0, CPHA=0
-    SPI_MODE_1 = 1, // CPOL=0, CPHA=1
-    SPI_MODE_2 = 2, // CPOL=1, CPHA=0
-    SPI_MODE_3 = 3  // CPOL=1, CPHA=1
+	SPI_MODE_0 = 0, // CPOL=0, CPHA=0
+	SPI_MODE_1 = 1, // CPOL=0, CPHA=1
+	SPI_MODE_2 = 2, // CPOL=1, CPHA=0
+	SPI_MODE_3 = 3  // CPOL=1, CPHA=1
 } spi_bus_mode_t;
 
 typedef struct {
@@ -34,12 +34,12 @@ typedef struct {
 	spi_bus_status_t (*switch_bytes)(void *user_data, const uint8_t *tx, uint8_t *rx, uint16_t len);
 	
 	// 动态配置 (SPI 特性：不同设备可能需要不同速率和模式)
-    spi_bus_status_t (*set_speed)(void *user_data, uint32_t speed_hz);
-    spi_bus_status_t (*set_mode)(void *user_data, spi_bus_mode_t mode);
+	spi_bus_status_t (*set_speed)(void *user_data, uint32_t speed_hz);
+	spi_bus_status_t (*set_mode)(void *user_data, spi_bus_mode_t mode);
 } spi_bus_ops_t;
 
 typedef struct {
-    void *user_data; 
+	void *user_data; 
 	spi_bus_ops_t *ops;
 } spi_bus_handle_t;
 

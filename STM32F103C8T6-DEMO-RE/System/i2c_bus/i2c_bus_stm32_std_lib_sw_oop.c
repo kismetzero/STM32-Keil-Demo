@@ -36,14 +36,14 @@ static i2c_bus_status_t SWI2C_Init(void *user_data) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	// SCL 引脚初始化
-    GPIO_InitStructure.GPIO_Pin = cfg->scl_gpio_pin;
-    GPIO_Init(cfg->scl_gpio_port, &GPIO_InitStructure);
-    // SDA 引脚初始化
-    GPIO_InitStructure.GPIO_Pin = cfg->sda_gpio_pin;
-    GPIO_Init(cfg->sda_gpio_port, &GPIO_InitStructure);
-    // 初始化状态：SCL 和 SDA 高电平（空闲状态）
-    scl_write(cfg, 1);
-    sda_write(cfg, 1);
+	GPIO_InitStructure.GPIO_Pin = cfg->scl_gpio_pin;
+	GPIO_Init(cfg->scl_gpio_port, &GPIO_InitStructure);
+	// SDA 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->sda_gpio_pin;
+	GPIO_Init(cfg->sda_gpio_port, &GPIO_InitStructure);
+	// 初始化状态：SCL 和 SDA 高电平（空闲状态）
+	scl_write(cfg, 1);
+	sda_write(cfg, 1);
 	log_i("SWI2C_Init: Success");
 	return I2C_BUS_OK;
 }
@@ -127,7 +127,7 @@ static i2c_bus_status_t SWI2C_WaitACK(void *user_data) {
 	while (sda_read(cfg) && timeout < 254) {
 		timeout++;
 		__NOP();__NOP();__NOP();
-    }
+	}
 	// 拉低时钟
 	scl_write(cfg, 0);
 	SWI2C_Delay();
@@ -156,7 +156,7 @@ static i2c_bus_status_t SWI2C_RecvByte(void *user_data, uint8_t *byte, bool ack)
 	for (uint8_t i = 0; i < 8; i++) {
 		// 产生时钟上升沿
 		scl_write(cfg, 1);
-        SWI2C_Delay();
+		SWI2C_Delay();
 
 		res <<= 1;
 		if (sda_read(cfg)) { res |= 0x01; }
@@ -200,16 +200,16 @@ static i2c_bus_status_t SWI2C_SendByte(void *user_data, uint8_t byte, bool wait)
 
 static i2c_bus_ops_t SWI2C_OPS = {
 	.init = SWI2C_Init,
-    .start = SWI2C_Start,
-    .stop = SWI2C_Stop,
+	.start = SWI2C_Start,
+	.stop = SWI2C_Stop,
 	.send_ack = SWI2C_SendACK,
 	.wait_ack = SWI2C_WaitACK,
 	.recv_byte = SWI2C_RecvByte,
-    .send_byte = SWI2C_SendByte
+	.send_byte = SWI2C_SendByte
 };
 
 i2c_bus_status_t i2c_bus_stm32_std_lib_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_lib_sw_config_t *cfg) {
-    if (handle == NULL) {
+	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail handle == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}

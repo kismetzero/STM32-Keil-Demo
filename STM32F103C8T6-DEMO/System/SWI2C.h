@@ -1,12 +1,11 @@
 #ifndef __SWI2C_H
 #define __SWI2C_H
 
-#include "stm32f10x.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
-
 
 void SWI2C_Init(void);
 void SWI2C_Start(void);

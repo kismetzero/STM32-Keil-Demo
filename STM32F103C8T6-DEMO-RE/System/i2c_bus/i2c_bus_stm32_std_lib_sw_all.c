@@ -4,13 +4,13 @@
 #define LOG_TAG "i2c_impl"
 #include "elog.h"
 
-#define SCL_GPIO_PORT		GPIOB
-#define SCL_GPIO_PIN		GPIO_Pin_8
 #define SCL_GPIO_CLK		RCC_APB2Periph_GPIOB
+#define SCL_GPIO_PIN		GPIO_Pin_8
+#define SCL_GPIO_PORT		GPIOB
 
-#define SDA_GPIO_PORT		GPIOB
-#define SDA_GPIO_PIN		GPIO_Pin_9
 #define SDA_GPIO_CLK		RCC_APB2Periph_GPIOB
+#define SDA_GPIO_PIN		GPIO_Pin_9
+#define SDA_GPIO_PORT		GPIOB
 
 #define SCL_HIGH()			GPIO_SetBits(SCL_GPIO_PORT, SCL_GPIO_PIN)
 #define SCL_LOW()			GPIO_ResetBits(SCL_GPIO_PORT, SCL_GPIO_PIN)
@@ -60,7 +60,7 @@ static inline void sda_write(i2c_bus_stm32_std_lib_sw_config_t *cfg, uint8_t Bit
 
 static i2c_bus_status_t SWI2C_Init(void *user_data) {
 	if (user_data == NULL) {
-		log_e("SWI2C_Init Fail: user_data == NULL");
+		log_e("SWI2C_Init: Fail user_data == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
@@ -70,25 +70,27 @@ static i2c_bus_status_t SWI2C_Init(void *user_data) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	// SCL 引脚初始化
-    GPIO_InitStructure.GPIO_Pin = cfg->scl_gpio_pin;
-    GPIO_Init(cfg->scl_gpio_port, &GPIO_InitStructure);
-    // SDA 引脚初始化
-    GPIO_InitStructure.GPIO_Pin = cfg->sda_gpio_pin;
-    GPIO_Init(cfg->sda_gpio_port, &GPIO_InitStructure);
-    // 初始化状态：SCL 和 SDA 高电平（空闲状态）
-    scl_write(cfg, 1);
-    sda_write(cfg, 1);
-	log_d("SWI2C_Init: success");
+	GPIO_InitStructure.GPIO_Pin = cfg->scl_gpio_pin;
+	GPIO_Init(cfg->scl_gpio_port, &GPIO_InitStructure);
+	// SDA 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->sda_gpio_pin;
+	GPIO_Init(cfg->sda_gpio_port, &GPIO_InitStructure);
+	// 初始化状态：SCL 和 SDA 高电平（空闲状态）
+	scl_write(cfg, 1);
+	sda_write(cfg, 1);
+	log_i("SWI2C_Init: Success");
 	return I2C_BUS_OK;
 }
 
 static i2c_bus_status_t SWI2C_Start(void *user_data) {
-	if (user_data == NULL) { return I2C_BUS_ERR_INVALID_PARAM; }
+	if (user_data == NULL) {
+		log_e("SWI2C_Start: Fail user_data == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
-	
 	// 检查总线是否空闲
 	if(!scl_read(cfg) || !sda_read(cfg)) {
-		log_e("SWI2C_Start: i2c_bus_busy");
+		log_e("SWI2C_Start: Fail i2c_bus_busy");
 		return I2C_BUS_ERR_BUSY;
 	}
 	// SDA 从高到低，SCL 保持高
@@ -105,7 +107,10 @@ static i2c_bus_status_t SWI2C_Start(void *user_data) {
 }
 
 static i2c_bus_status_t SWI2C_Stop(void *user_data) {
-	if (user_data == NULL) { return I2C_BUS_ERR_INVALID_PARAM; }
+	if (user_data == NULL) {
+		log_e("SWI2C_Start: Fail user_data == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
 	
 	sda_write(cfg, 0);
@@ -119,7 +124,10 @@ static i2c_bus_status_t SWI2C_Stop(void *user_data) {
 }
 
 static i2c_bus_status_t SWI2C_SendACK(void *user_data, bool ack) {
-	if (user_data == NULL) { return I2C_BUS_ERR_INVALID_PARAM; }
+	if (user_data == NULL) {
+		log_e("SWI2C_Start: Fail user_data == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
 	
 	scl_write(cfg, 0);
@@ -137,7 +145,10 @@ static i2c_bus_status_t SWI2C_SendACK(void *user_data, bool ack) {
 }
 
 static i2c_bus_status_t SWI2C_WaitACK(void *user_data) {
-	if (user_data == NULL) { return I2C_BUS_ERR_INVALID_PARAM; }
+	if (user_data == NULL) {
+		log_e("SWI2C_Start: Fail user_data == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
 	uint8_t timeout = 0;
 	
@@ -150,21 +161,28 @@ static i2c_bus_status_t SWI2C_WaitACK(void *user_data) {
 	while (sda_read(cfg) && timeout < 254) {
 		timeout++;
 		__NOP();__NOP();__NOP();
-    }
+	}
 	// 拉低时钟
 	scl_write(cfg, 0);
 	SWI2C_Delay();
 	
 	// 超时，无ACK
 	if (timeout >= 254) {
-		log_e("SWI2C_WaitACK: NACK Received (Timeout = %d)", timeout);
+		log_e("SWI2C_WaitACK: Fail NACK Received (timeout=%d)", timeout);
 		return I2C_BUS_ERR_NACK;
 	}
 	return I2C_BUS_OK;
 }
 
-static i2c_bus_status_t SWI2C_ReadByte(void *user_data, uint8_t *byte, bool ack) {
-	if (user_data == NULL || byte == NULL) { return I2C_BUS_ERR_INVALID_PARAM; }
+static i2c_bus_status_t SWI2C_RecvByte(void *user_data, uint8_t *byte, bool ack) {
+	if (user_data == NULL || byte == NULL) {
+		log_e("SWI2C_Start: Fail user_data == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
+	if (byte == NULL) {
+		log_e("SWI2C_Start: Fail byte == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
 	uint8_t res = 0x00;
 	
@@ -172,7 +190,7 @@ static i2c_bus_status_t SWI2C_ReadByte(void *user_data, uint8_t *byte, bool ack)
 	for (uint8_t i = 0; i < 8; i++) {
 		// 产生时钟上升沿
 		scl_write(cfg, 1);
-        SWI2C_Delay();
+		SWI2C_Delay();
 
 		res <<= 1;
 		if (sda_read(cfg)) { res |= 0x01; }
@@ -188,10 +206,12 @@ static i2c_bus_status_t SWI2C_ReadByte(void *user_data, uint8_t *byte, bool ack)
 	return I2C_BUS_OK;
 }
 
-static i2c_bus_status_t SWI2C_WriteByte(void *user_data, uint8_t byte, bool wait) {
-	if (user_data == NULL) { return I2C_BUS_ERR_INVALID_PARAM; }
+static i2c_bus_status_t SWI2C_SendByte(void *user_data, uint8_t byte, bool wait) {
+	if (user_data == NULL) {
+		log_e("SWI2C_Start: Fail user_data == NULL");
+		return I2C_BUS_ERR_INVALID_PARAM;
+	}
 	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)user_data;
-	
 	for (uint8_t i = 0; i < 8; i++) {
 		if (byte & 0x80) { sda_write(cfg, 1); }
 		else { sda_write(cfg, 0); }
@@ -206,41 +226,38 @@ static i2c_bus_status_t SWI2C_WriteByte(void *user_data, uint8_t byte, bool wait
 		byte <<= 1;
 		SWI2C_Delay();
 	}
-	if (wait) { return SWI2C_WaitACK(user_data); }
-	
+	if (wait) {
+		return SWI2C_WaitACK(user_data);
+	}
 	return I2C_BUS_OK;
 }
 
 static i2c_bus_ops_t SWI2C_OPS = {
 	.init = SWI2C_Init,
-    .start = SWI2C_Start,
-    .stop = SWI2C_Stop,
+	.start = SWI2C_Start,
+	.stop = SWI2C_Stop,
 	.send_ack = SWI2C_SendACK,
 	.wait_ack = SWI2C_WaitACK,
-	.read_byte = SWI2C_ReadByte,
-    .write_byte = SWI2C_WriteByte
+	.recv_byte = SWI2C_RecvByte,
+	.send_byte = SWI2C_SendByte
 };
 
 i2c_bus_status_t i2c_bus_stm32_std_lib_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_lib_sw_config_t *cfg) {
-    if (handle == NULL) {
-		log_e("i2c_bus_stm32_std_lib_sw_create_handle: handle == NULL");
+	if (handle == NULL) {
+		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail handle == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
 	if (cfg == NULL) {
-		log_e("i2c_bus_stm32_std_lib_sw_create_handle: cfg == NULL");
+		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail cfg == NULL");
 		return I2C_BUS_ERR_INVALID_PARAM;
 	}
-	
 	handle->user_data = cfg;
 	handle->ops = &SWI2C_OPS;
-	
 	i2c_bus_status_t ret = handle->ops->init(handle->user_data);
 	if (ret == I2C_BUS_OK) {
-		log_i("i2c_bus_stm32_std_lib_sw_create_handle: Success");
+		log_i("i2c_bus_stm32_std_lib_sw_create_handle: Init Handle Success");
 	} else {
-		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail code = %d", ret);
+		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail Init Handle Fail (Code: %d)", ret);
 	}
-	
 	return ret;
 }

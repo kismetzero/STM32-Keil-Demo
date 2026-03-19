@@ -1,18 +1,18 @@
 #include "PWM.h"
 #include "stm32f10x.h"
 
-#define PWM_OC_GPIO_PORT		GPIOA
-#define PWM_OC_GPIO_PIN			GPIO_Pin_6
 #define PWM_OC_GPIO_CLK			RCC_APB2Periph_GPIOA
-#define PWM_OC_TIM_PORT			TIM3
+#define PWM_OC_GPIO_PIN			GPIO_Pin_6
+#define PWM_OC_GPIO_PORT		GPIOA
 #define PWM_OC_TIM_CLK			RCC_APB1Periph_TIM3
+#define PWM_OC_TIM_PORT			TIM3
 #define PWM_OC_TIM_CHANNEL		1						//TIM_Channel_x
 
-#define PWM_IC_GPIO_PORT		GPIOA
-#define PWM_IC_GPIO_PIN			GPIO_Pin_1
 #define PWM_IC_GPIO_CLK			RCC_APB2Periph_GPIOA
-#define PWM_IC_TIM_PORT			TIM2
+#define PWM_IC_GPIO_PIN			GPIO_Pin_1
+#define PWM_IC_GPIO_PORT		GPIOA
 #define PWM_IC_TIM_CLK			RCC_APB1Periph_TIM2
+#define PWM_IC_TIM_PORT			TIM2
 #define PWM_IC_TIM_CHANNEL		2						//TIM_Channel_x
 
 void PWM_OCDeInit(void) {

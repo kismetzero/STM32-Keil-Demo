@@ -46,4 +46,4 @@ uint32_t PWM_ICGetDuty(void);
 }
 #endif
 
-#endif  /* __PWM_H */
+#endif	/* __PWM_H */

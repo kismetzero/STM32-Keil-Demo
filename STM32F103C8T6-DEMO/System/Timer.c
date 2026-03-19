@@ -1,7 +1,8 @@
 #include "Timer.h"
+#include "stm32f10x.h"
 
-#define TIMER_TIM_PORT				TIM4
 #define TIMER_TIM_CLK				RCC_APB1Periph_TIM4
+#define TIMER_TIM_PORT				TIM4
 #define TIMER_TIM_IRQ_HANDLER		TIM4_IRQHandler
 #define TIMER_TIM_IRQ_CHANNEL		TIM4_IRQn
 #define TIMER_TIM_IRQ_FLAG			TIM_IT_Update
@@ -18,7 +19,7 @@ void TIMER_TIM_IRQ_HANDLER(void) {
 }
 
 void Timer_Init(void) {
-	RCC_APB1PeriphClockCmd(TIMER_TIM_CLK, ENABLE);  //使能总线时钟
+	RCC_APB1PeriphClockCmd(TIMER_TIM_CLK, ENABLE);	//使能总线时钟
 	
 	TIM_InternalClockConfig(TIMER_TIM_PORT);		//使用内部时钟
 	
@@ -42,10 +43,10 @@ void Timer_ITInit(void) {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);				//设置NVIC中断分组
 	
 	NVIC_InitTypeDef NVIC_InitStructure;
-	NVIC_InitStructure.NVIC_IRQChannel = TIMER_TIM_IRQ_CHANNEL;			  //中断通道
+	NVIC_InitStructure.NVIC_IRQChannel = TIMER_TIM_IRQ_CHANNEL;				//中断通道
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;	//抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		   //排队优先级（子优先级）
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;			//排队优先级（子优先级）
 	NVIC_Init(&NVIC_InitStructure);
 }
 
