@@ -5,6 +5,7 @@
 #include "i2c_bus_stm32_std_lib_sw.h"
 #include "spi_bus.h"
 #include "spi_bus_stm32_std_lib_sw.h"
+#include "AHT20.h"
 
 void elog_config_init() {
 	/* initialize EasyLogger */
@@ -33,9 +34,16 @@ void i2c_config_init() {
 	swi2c_cfg.sda_gpio_port	=	GPIOB;
 	
 	i2c_bus_status_t ret = i2c_bus_stm32_std_lib_sw_create_handle(&swi2c_handle, &swi2c_cfg);
-	if (ret != I2C_BUS_OK) {
+	if (ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c_config_init: Fail (Code: %d)", ret);
 	}
+}
+
+AHT20_Handle_t aht20_handle;
+void aht20_config_init() {
+	aht20_handle.hi2c		=	&swi2c_handle;
+	aht20_handle.i2c_addr	=	0;
+	AHT20_Init(&aht20_handle);
 }
 
 spi_bus_handle_t swspi_bus_handle;
@@ -115,6 +123,7 @@ void system_init() {
 	i2c_config_init();
 	spi_bus_config_init();
 	w25qx_config_init();
+	aht20_config_init();
 }
 
 

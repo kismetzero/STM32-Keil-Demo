@@ -22,12 +22,12 @@ static float AHT20_GetHumidity(uint8_t *data) {
 
 AHT20_Status_t AHT20_Init(AHT20_Handle_t *dev) {
 	if (dev == NULL) {
-		log_e("AHT20_Init: Fail dev == NULL");
+		log_e("AHT20_Init: Fail! dev == NULL");
 		return AHT20_ERR_INVALID_PARAM;
 	}
 	
 	if (dev->hi2c == NULL) {
-		log_e("AHT20_Init: Fail dev->hi2c == NULL");
+		log_e("AHT20_Init: Fail! dev->hi2c == NULL");
 		return AHT20_ERR_I2C_ERR;
 	}
 	
@@ -42,17 +42,17 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *dev) {
 	
 	delay_ms(50);
 	
-	i2c_ret = i2c_write_data(dev->hi2c, dev->i2c_addr, AHT20_InitCommand, 3);
-	if (i2c_ret != I2C_BUS_OK) {
-		log_e("AHT20_Init: Fail @ Write Init Cmd Fail(Code: %d)", i2c_ret);
+	i2c_ret = i2c_write_bytes(dev->hi2c, dev->i2c_addr, AHT20_InitCommand, 3);
+	if (i2c_ret != I2C_BUS_STATUS_OK) {
+		log_e("AHT20_Init: Fail! @ Write Init Cmd Fail(Code: %d)", i2c_ret);
 		return AHT20_ERR_I2C_ERR;
 	}
 	
 	delay_ms(50);
 	
-	i2c_ret = i2c_read_data(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
-	if (i2c_ret != I2C_BUS_OK) {
-		log_e("AHT20_Init: Fail @ Read Data Fail(Code: %d)", i2c_ret);
+	i2c_ret = i2c_read_bytes(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
+	if (i2c_ret != I2C_BUS_STATUS_OK) {
+		log_e("AHT20_Init: Fail! @ Read Data Fail(Code: %d)", i2c_ret);
 		return AHT20_ERR_I2C_ERR;
 	}
 	
@@ -83,8 +83,8 @@ AHT20_Status_t AHT20_Reset(AHT20_Handle_t *dev) {
 	i2c_bus_status_t i2c_ret;
 	static const uint8_t AHT20_ResetCommand[] = {0xBA};
 	
-	i2c_ret = i2c_write_data(dev->hi2c, dev->i2c_addr, AHT20_ResetCommand, 1);
-	if (i2c_ret != I2C_BUS_OK) { return AHT20_ERR_I2C_ERR; }
+	i2c_ret = i2c_write_bytes(dev->hi2c, dev->i2c_addr, AHT20_ResetCommand, 1);
+	if (i2c_ret != I2C_BUS_STATUS_OK) { return AHT20_ERR_I2C_ERR; }
 	
 	return AHT20_OK;
 }
@@ -103,16 +103,16 @@ AHT20_Status_t AHT20_Measure(AHT20_Handle_t *dev) {
 	i2c_bus_status_t i2c_ret;
 	static const uint8_t AHT20_MeasureCommand[] = {0xAC, 0x33, 0x00};
 	
-	i2c_ret = i2c_write_data(dev->hi2c, dev->i2c_addr, AHT20_MeasureCommand, 3);
-	if (i2c_ret != I2C_BUS_OK) {
+	i2c_ret = i2c_write_bytes(dev->hi2c, dev->i2c_addr, AHT20_MeasureCommand, 3);
+	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("AHT20_Measure: Fail @ Write Measure Cmd Fail(Code: %d)", i2c_ret);
 		return AHT20_ERR_I2C_ERR;
 	}
 	
 	delay_ms(80);
 	
-	i2c_ret = i2c_read_data(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
-	if (i2c_ret != I2C_BUS_OK) {
+	i2c_ret = i2c_read_bytes(dev->hi2c, dev->i2c_addr, dev->raw_data, 6);
+	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("AHT20_Measure: Fail @ Read Data Fail(Code: %d)", i2c_ret);
 		return AHT20_ERR_I2C_ERR;
 	}

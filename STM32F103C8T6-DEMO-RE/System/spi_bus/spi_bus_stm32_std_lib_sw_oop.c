@@ -255,22 +255,22 @@ spi_bus_status_t spi_bus_stm32_std_lib_sw_create_cs_handle(spi_cs_handle_t *hand
 	return ret;
 }
 
-static spi_bus_status_t HW_Init(void *user_data) {
-	if (user_data == NULL) {
-		log_e("HW_Init: Fail: user_data == NULL");
-		return SPI_BUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_lib_hw_bus_config_t *cfg = (spi_bus_stm32_std_lib_hw_bus_config_t *)user_data;
-	RCC_APB2PeriphClockCmd(cfg->cs_gpio_clk, ENABLE);
-	GPIO_InitTypeDef GPIO_InitStructure;
-	//GPIO_StructInit(&GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	// CS 引脚初始化
-	GPIO_InitStructure.GPIO_Pin = cfg->cs_gpio_pin;
-	GPIO_Init(cfg->cs_gpio_port, &GPIO_InitStructure);
-	// 默认拉高 (释放设备)
-	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
-	log_i("Cs_Init: Success cs_pin=%d", cfg->cs_gpio_pin);
-	return SPI_BUS_OK;
-}
+//static spi_bus_status_t HW_Init(void *user_data) {
+//	if (user_data == NULL) {
+//		log_e("HW_Init: Fail: user_data == NULL");
+//		return SPI_BUS_ERR_INVALID_PARAM;
+//	}
+//	spi_bus_stm32_std_lib_hw_bus_config_t *cfg = (spi_bus_stm32_std_lib_hw_bus_config_t *)user_data;
+//	RCC_APB2PeriphClockCmd(cfg->cs_gpio_clk, ENABLE);
+//	GPIO_InitTypeDef GPIO_InitStructure;
+//	//GPIO_StructInit(&GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//	// CS 引脚初始化
+//	GPIO_InitStructure.GPIO_Pin = cfg->cs_gpio_pin;
+//	GPIO_Init(cfg->cs_gpio_port, &GPIO_InitStructure);
+//	// 默认拉高 (释放设备)
+//	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
+//	log_i("Cs_Init: Success cs_pin=%d", cfg->cs_gpio_pin);
+//	return SPI_BUS_OK;
+//}

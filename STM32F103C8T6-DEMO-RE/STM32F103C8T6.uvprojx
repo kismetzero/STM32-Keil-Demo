@@ -430,19 +430,14 @@
               <FilePath>.\System\delay.h</FilePath>
             </File>
             <File>
-              <FileName>delay_STM32_DWT.c</FileName>
+              <FileName>delay_stm32_std_lib_dwt.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\System\delay_STM32_DWT.c</FilePath>
+              <FilePath>.\System\delay_stm32_std_lib_dwt.c</FilePath>
             </File>
             <File>
               <FileName>i2c_bus.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\i2c_bus\i2c_bus.h</FilePath>
-            </File>
-            <File>
-              <FileName>i2c_bus_core.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\i2c_bus_core.c</FilePath>
             </File>
             <File>
               <FileName>i2c_bus_stm32_std_lib_sw.h</FileName>
