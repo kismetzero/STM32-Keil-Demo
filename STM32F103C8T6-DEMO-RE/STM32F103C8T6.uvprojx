@@ -455,11 +455,6 @@
               <FilePath>.\System\spi_bus.h</FilePath>
             </File>
             <File>
-              <FileName>spi_bus_core.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\spi_bus_core.c</FilePath>
-            </File>
-            <File>
               <FileName>spi_bus_stm32_std_lib_sw.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\spi_bus_stm32_std_lib_sw.h</FilePath>
@@ -513,6 +508,16 @@
               <FileName>W25QX_spi_bus.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\W25QX\W25QX_spi_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\DS3231\DS3231.h</FilePath>
+            </File>
+            <File>
+              <FileName>DS3231_i2c_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\DS3231\DS3231_i2c_bus.c</FilePath>
             </File>
           </Files>
         </Group>

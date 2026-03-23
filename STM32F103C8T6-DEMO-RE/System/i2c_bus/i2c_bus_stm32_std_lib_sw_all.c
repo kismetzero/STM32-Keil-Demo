@@ -4,6 +4,8 @@
 #define LOG_TAG "i2c_impl"
 #include "elog.h"
 
+#define I2C_BUS_FAST 1
+
 #define __SCL_GPIO_CLK		RCC_APB2Periph_GPIOB
 #define __SCL_GPIO_PIN		GPIO_Pin_8
 #define __SCL_GPIO_PORT		GPIOB
@@ -22,7 +24,7 @@
 #define __SDA_READ()		GPIO_ReadInputDataBit(__SDA_GPIO_PORT, __SDA_GPIO_PIN)
 #define __SDA_WRITE(X)		GPIO_WriteBit(__SDA_GPIO_PORT, __SDA_GPIO_PIN, X ? Bit_SET : Bit_RESET)
 
-__STATIC_INLINE void __delay(void) {
+__STATIC_INLINE void __i2c_delay(void) {
 	delay_us(5);
 }
 
@@ -66,10 +68,10 @@ __STATIC_INLINE i2c_bus_status_t __start(i2c_bus_stm32_std_lib_sw_config_t *cfg)
 	// SDA 从高到低，SCL 保持高
 	__sda_write(cfg, 1);
 	__scl_write(cfg, 1);
-	__delay();
+	__i2c_delay();
 	// SDA 下降沿
 	__sda_write(cfg, 0);
-	__delay();
+	__i2c_delay();
 	// 拉低 SCL，准备发送数据
 	__scl_write(cfg, 0);	
 	return I2C_BUS_STATUS_OK;
@@ -78,10 +80,10 @@ __STATIC_INLINE i2c_bus_status_t __start(i2c_bus_stm32_std_lib_sw_config_t *cfg)
 __STATIC_INLINE i2c_bus_status_t __stop(i2c_bus_stm32_std_lib_sw_config_t *cfg) {
 	__sda_write(cfg, 0);
 	__scl_write(cfg, 1);
-	__delay();
+	__i2c_delay();
 	// SDA 上升沿
 	__sda_write(cfg, 1);
-	__delay();
+	__i2c_delay();
 	return I2C_BUS_STATUS_OK;
 }
 
@@ -89,10 +91,10 @@ __STATIC_INLINE i2c_bus_status_t __send_ack(i2c_bus_stm32_std_lib_sw_config_t *c
 	__scl_write(cfg, 0);
 	if (ack) { __sda_write(cfg, 0); }	// SDA = 0 表示应答
 	else { __sda_write(cfg, 1); }		// SDA = 1 表示非应答
-	__delay();
+	__i2c_delay();
 	// 时钟高电平，从设备采样ACK
 	__scl_write(cfg, 1);
-	__delay();
+	__i2c_delay();
 	
 	__scl_write(cfg, 0);
 	__sda_write(cfg, 1);
@@ -105,7 +107,7 @@ __STATIC_INLINE i2c_bus_status_t __wait_ack(i2c_bus_stm32_std_lib_sw_config_t *c
 	__sda_write(cfg, 1);
 	// 主机释放SCL，等待从机拉低SDA
 	__scl_write(cfg, 1);
-	__delay();
+	__i2c_delay();
 	// 循环等待
 	while (__sda_read(cfg) && timeout < 254) {
 		timeout++;
@@ -113,7 +115,7 @@ __STATIC_INLINE i2c_bus_status_t __wait_ack(i2c_bus_stm32_std_lib_sw_config_t *c
 	}
 	// 拉低时钟
 	__scl_write(cfg, 0);
-	__delay();
+	__i2c_delay();
 	// 超时，无ACK
 	if (timeout >= 254) {
 		return I2C_BUS_STATUS_ERR_NACK;
@@ -127,12 +129,12 @@ __STATIC_INLINE i2c_bus_status_t __recv_byte(i2c_bus_stm32_std_lib_sw_config_t *
 	for (uint8_t i = 0; i < 8; i++) {
 		// 产生时钟上升沿
 		__scl_write(cfg, 1);
-		__delay();
+		__i2c_delay();
 		
 		res <<= 1;
 		if (__sda_read(cfg)) { res |= 0x01; }
 		__scl_write(cfg, 0);
-		__delay();
+		__i2c_delay();
 	}
 	*byte = res;
 	return __send_ack(cfg, ack);
@@ -142,16 +144,16 @@ __STATIC_INLINE i2c_bus_status_t __send_byte(i2c_bus_stm32_std_lib_sw_config_t *
 	for (uint8_t i = 0; i < 8; i++) {
 		if (byte & 0x80) { __sda_write(cfg, 1); }
 		else { __sda_write(cfg, 0); }
-		__delay();
+		__i2c_delay();
 
 		__scl_write(cfg, 1);
-		__delay();
+		__i2c_delay();
 		
 		__scl_write(cfg, 0);
 		if (i == 7) { __sda_write(cfg, 1); }
 		
 		byte <<= 1;
-		__delay();
+		__i2c_delay();
 	}
 	if (wait) {
 		return __wait_ack(cfg);
@@ -188,12 +190,7 @@ static i2c_bus_status_t __i2c_init(i2c_bus_handle_t *handle) {
 }
 
 static i2c_bus_status_t __i2c_start(i2c_bus_handle_t *handle) {
-#if I2C_BUS_FAST == 1
-	if (handle == NULL || handle->user_data == NULL) {
-        return I2C_BUS_STATUS_ERR_INVALID_PARAM;
-    }
-	return __start((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
-#else	/* I2C_BUS_FAST */
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_start: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -202,6 +199,7 @@ static i2c_bus_status_t __i2c_start(i2c_bus_handle_t *handle) {
 		log_e("__i2c_start: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	i2c_bus_status_t ret = __start((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
 	if (ret != I2C_BUS_STATUS_OK) {
 		log_e("__i2c_start: Fail! (Code: %d)", ret);
@@ -211,13 +209,10 @@ static i2c_bus_status_t __i2c_start(i2c_bus_handle_t *handle) {
 		}
 	}
 	return ret;
-#endif	/* I2C_BUS_FAST */
 }
 
 static i2c_bus_status_t __i2c_stop(i2c_bus_handle_t *handle) {
-#if I2C_BUS_FAST == 1
-	return __stop((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
-#else	/* I2C_BUS_FAST */
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_stop: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -226,14 +221,12 @@ static i2c_bus_status_t __i2c_stop(i2c_bus_handle_t *handle) {
 		log_e("__i2c_stop: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return __stop((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
 #endif	/* I2C_BUS_FAST */
+	return __stop((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
 }
 
 static i2c_bus_status_t __i2c_send_ack(i2c_bus_handle_t *handle, bool ack) {
-#if I2C_BUS_FAST == 1
-	return __send_ack((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, ack);
-#else	/* I2C_BUS_FAST */
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_send_ack: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -242,14 +235,12 @@ static i2c_bus_status_t __i2c_send_ack(i2c_bus_handle_t *handle, bool ack) {
 		log_e("__i2c_send_ack: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return __send_ack((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, ack);
 #endif	/* I2C_BUS_FAST */
+	return __send_ack((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, ack);
 }
 
 static i2c_bus_status_t __i2c_wait_ack(i2c_bus_handle_t *handle) {
-#if I2C_BUS_FAST == 1
-	return __wait_ack((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
-#else	/* I2C_BUS_FAST */
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_wait_ack: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -258,6 +249,7 @@ static i2c_bus_status_t __i2c_wait_ack(i2c_bus_handle_t *handle) {
 		log_e("__i2c_wait_ack: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	i2c_bus_status_t ret = __wait_ack((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data);
 	if (ret != I2C_BUS_STATUS_OK) {
 		log_e("__i2c_wait_ack: Fail! (Code: %d)", ret);
@@ -267,13 +259,10 @@ static i2c_bus_status_t __i2c_wait_ack(i2c_bus_handle_t *handle) {
 		}
 	}
 	return ret;
-#endif	/* I2C_BUS_FAST */
 }
 
 static i2c_bus_status_t __i2c_recv_byte(i2c_bus_handle_t *handle, uint8_t *byte, bool ack) {
-#if I2C_BUS_FAST == 1
-	return __recv_byte((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, byte, ack);
-#else	/* I2C_BUS_FAST */
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_recv_byte: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -282,18 +271,16 @@ static i2c_bus_status_t __i2c_recv_byte(i2c_bus_handle_t *handle, uint8_t *byte,
 		log_e("__i2c_recv_byte: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	if (byte == NULL) {
 		log_e("__i2c_recv_byte: Fail! byte == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	return __recv_byte((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, byte, ack);
-#endif	/* I2C_BUS_FAST */
 }
 
 static i2c_bus_status_t __i2c_send_byte(i2c_bus_handle_t *handle, uint8_t byte, bool wait) {
-#if I2C_BUS_FAST == 1
-	return __send_byte((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, byte, wait);
-#else	/* I2C_BUS_FAST */
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_send_byte: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -302,6 +289,7 @@ static i2c_bus_status_t __i2c_send_byte(i2c_bus_handle_t *handle, uint8_t byte, 
 		log_e("__i2c_send_byte: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	i2c_bus_status_t ret = __send_byte((i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data, byte, wait);
 	if (ret != I2C_BUS_STATUS_OK) {
 		log_e("__i2c_send_byte: Fail! (Code: %d)", ret);
@@ -311,10 +299,10 @@ static i2c_bus_status_t __i2c_send_byte(i2c_bus_handle_t *handle, uint8_t byte, 
 		}
 	}
 	return ret;
-#endif	/* I2C_BUS_FAST */
 }
 
 static i2c_bus_status_t __i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len) {
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_read_bytes: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -323,6 +311,7 @@ static i2c_bus_status_t __i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_a
 		log_e("__i2c_read_bytes: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("__i2c_read_bytes: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -343,7 +332,7 @@ static i2c_bus_status_t __i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_a
 	ret = __send_byte(cfg, (dev_addr << 1) | 0x01, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_read_bytes: Fail! dev_addr(R)=0x%02X NACK. Device not found?", dev_addr);
+		log_e("__i2c_read_bytes: Fail! dev_addr(R)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
 		return I2C_BUS_STATUS_ERR_DEV_NONE;
 	}
 	// 读取数据
@@ -364,6 +353,7 @@ static i2c_bus_status_t __i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_a
 }
 
 static i2c_bus_status_t __i2c_write_bytes(i2c_bus_handle_t *handle, uint8_t dev_addr, const uint8_t *data, uint16_t len) {
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_write_bytes: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -372,6 +362,7 @@ static i2c_bus_status_t __i2c_write_bytes(i2c_bus_handle_t *handle, uint8_t dev_
 		log_e("__i2c_write_bytes: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("__i2c_write_bytes: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -392,7 +383,7 @@ static i2c_bus_status_t __i2c_write_bytes(i2c_bus_handle_t *handle, uint8_t dev_
 	ret = __send_byte(cfg, (dev_addr << 1) | 0x00, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_write_bytes: Fail! @ dev_addr(W)=0x%02X NACK. Device not found?", dev_addr);
+		log_e("__i2c_write_bytes: Fail! @ dev_addr(W)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
 		return I2C_BUS_STATUS_ERR_DEV_NONE;
 	}
 	// 发送数据
@@ -400,7 +391,7 @@ static i2c_bus_status_t __i2c_write_bytes(i2c_bus_handle_t *handle, uint8_t dev_
 		ret = __send_byte(cfg, data[i], true);
 		if (ret != I2C_BUS_STATUS_OK) {
 			__stop(cfg);
-			log_e("__i2c_write_bytes: Fail @ dev_addr(W)=0x%02X DATA[%d]=0x%02X (Code: %d)", dev_addr, i, data[i], ret);
+			log_e("__i2c_write_bytes: Fail! @ dev_addr(W)=0x%02X DATA[%d]=0x%02X (Code: %d)", dev_addr, i, data[i], ret);
 			return ret;
 		}
 	}
@@ -408,14 +399,84 @@ static i2c_bus_status_t __i2c_write_bytes(i2c_bus_handle_t *handle, uint8_t dev_
 }
 
 static i2c_bus_status_t __i2c_read_byte(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *byte) {
-	return __i2c_read_bytes(handle, dev_addr, byte, 1);
+#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("__i2c_read_byte: Fail! handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("__i2c_read_byte: Fail! user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+#endif	/* I2C_BUS_FAST */
+	if (byte == NULL) {
+		log_e("__i2c_read_byte: Fail! byte == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data;
+	i2c_bus_status_t ret;
+	// 发送起始信号
+	ret = __start(cfg);
+	if (ret != I2C_BUS_STATUS_OK) {
+		log_e("__i2c_read_byte: Fail! @ start (Code: %d). Bus busy?", ret);
+		return ret;
+	}
+	// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
+	ret = __send_byte(cfg, (dev_addr << 1) | 0x01, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_read_byte: Fail! dev_addr(R)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
+		return I2C_BUS_STATUS_ERR_DEV_NONE;
+	}
+	// 读取数据
+	ret = __recv_byte(cfg, byte, false);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_read_byte: Fail! @ dev_addr(R)=0x%02X recv_byte (Code: %d)", dev_addr, ret);
+		return ret;
+	}
+//	__recv_byte(cfg, byte, false);
+	return __stop(cfg);
 }
 
 static i2c_bus_status_t __i2c_write_byte(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t byte) {
-	return __i2c_write_bytes(handle, dev_addr, &byte, 1);
+#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("__i2c_write_byte: Fail! handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("__i2c_write_byte: Fail! user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+#endif	/* I2C_BUS_FAST */
+	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data;
+	i2c_bus_status_t ret;
+	// 发送起始信号
+	ret = __start(cfg);
+	if (ret != I2C_BUS_STATUS_OK) {
+		log_e("__i2c_write_byte: Fail! @ start (Code: %d). Bus busy?", ret);
+		return ret;
+	}
+	// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
+	ret = __send_byte(cfg, (dev_addr << 1) | 0x00, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_write_byte: Fail! @ dev_addr(W)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
+		return I2C_BUS_STATUS_ERR_DEV_NONE;
+	}
+	// 发送数据
+	ret = __send_byte(cfg, byte, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_write_byte: Fail! @ dev_addr(W)=0x%02X byte=0x%02X NACK (Code: %d)", dev_addr, byte, ret);
+		return ret;
+	}
+	return __stop(cfg);
 }
 
 static i2c_bus_status_t __i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_read_regs: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -424,6 +485,7 @@ static i2c_bus_status_t __i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_ad
 		log_e("__i2c_read_regs: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("__i2c_read_regs: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -444,15 +506,15 @@ static i2c_bus_status_t __i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_ad
 	ret = __send_byte(cfg, (dev_addr << 1) | 0x00, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_read_regs: Fail! @ dev_addr(W)=0x%02X NACK. Device not found?", dev_addr);
+		log_e("__i2c_read_regs: Fail! @ dev_addr(W)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
 		return I2C_BUS_STATUS_ERR_DEV_NONE;
 	}
 	// 发送寄存器地址
 	ret = __send_byte(cfg, reg_addr, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_read_regs: Fail! @ dev_addr(W)=0x%02X RegAddr=0x%02X NACK", dev_addr, reg_addr);
-		return I2C_BUS_STATUS_ERR_DEV_NONE;
+		log_e("__i2c_read_regs: Fail! @ dev_addr(W)=0x%02X RegAddr=0x%02X NACK (Code: %d)", dev_addr, reg_addr, ret);
+		return I2C_BUS_STATUS_ERR_REG_NONE;
 	}
 	// 重复起始信号
 	ret = __start(cfg);
@@ -466,7 +528,7 @@ static i2c_bus_status_t __i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_ad
 	ret = __send_byte(cfg, (dev_addr << 1) | 0x01, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_read_regs: Fail! dev_addr(R)=0x%02X NACK. Device not found?", dev_addr);
+		log_e("__i2c_read_regs: Fail! dev_addr(R)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
 		return I2C_BUS_STATUS_ERR_DEV_NONE;
 	}
 	// 读取数据
@@ -487,6 +549,7 @@ static i2c_bus_status_t __i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_ad
 }
 
 static i2c_bus_status_t __i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, uint16_t len) {
+#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("__i2c_write_regs: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -495,6 +558,7 @@ static i2c_bus_status_t __i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_a
 		log_e("__i2c_write_regs: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("__i2c_write_regs: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -515,22 +579,22 @@ static i2c_bus_status_t __i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_a
 	ret = __send_byte(cfg, (dev_addr << 1) | 0x00, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_write_regs: Fail! @ dev_addr(W)=0x%02X NACK. Device not found?", dev_addr);
+		log_e("__i2c_write_regs: Fail! @ dev_addr(W)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
 		return I2C_BUS_STATUS_ERR_DEV_NONE;
 	}
 	// 发送寄存器地址
 	ret = __send_byte(cfg, reg_addr, true);
 	if (ret != I2C_BUS_STATUS_OK) {
 		__stop(cfg);
-		log_e("__i2c_write_regs: Fail! @ dev_addr(W)=0x%02X RegAddr=0x%02X NACK", dev_addr, reg_addr);
-		return I2C_BUS_STATUS_ERR_DEV_NONE;
+		log_e("__i2c_write_regs: Fail! @ dev_addr(W)=0x%02X RegAddr=0x%02X NACK (Code: %d)", dev_addr, reg_addr, ret);
+		return I2C_BUS_STATUS_ERR_REG_NONE;
 	}
 	// 发送数据
 	for (uint16_t i = 0; i < len; i++) {
 		ret = __send_byte(cfg, data[i], true);
 		if (ret != I2C_BUS_STATUS_OK) {
 			__stop(cfg);
-			log_e("__i2c_write_regs: Fail @ dev_addr(W)=0x%02X DATA[%d]=0x%02X (Code: %d)", dev_addr, i, data[i], ret);
+			log_e("__i2c_write_regs: Fail! @ dev_addr(W)=0x%02X DATA[%d]=0x%02X (Code: %d)", dev_addr, i, data[i], ret);
 			return ret;
 		}
 	}
@@ -538,11 +602,109 @@ static i2c_bus_status_t __i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_a
 }
 
 static i2c_bus_status_t __i2c_read_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t *byte) {
-	return __i2c_read_regs(handle, dev_addr, reg_addr, byte, 1);
+#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("__i2c_read_reg: Fail! handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("__i2c_read_reg: Fail! user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+#endif	/* I2C_BUS_FAST */
+	if (byte == NULL) {
+		log_e("__i2c_read_reg: Fail! byte == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data;
+	i2c_bus_status_t ret;
+	// 发送起始信号
+	ret = __start(cfg);
+	if (ret != I2C_BUS_STATUS_OK) {
+		log_e("__i2c_read_reg: Fail! @ start (Code: %d). Bus busy?", ret);
+		return ret;
+	}
+	// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
+	ret = __send_byte(cfg, (dev_addr << 1) | 0x00, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_read_reg: Fail! @ dev_addr(W)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
+		return I2C_BUS_STATUS_ERR_DEV_NONE;
+	}
+	// 发送寄存器地址
+	ret = __send_byte(cfg, reg_addr, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_read_reg: Fail! @ dev_addr(W)=0x%02X RegAddr=0x%02X NACK (Code: %d)", dev_addr, reg_addr, ret);
+		return I2C_BUS_STATUS_ERR_REG_NONE;
+	}
+	// 重复起始信号
+	ret = __start(cfg);
+	if (ret != I2C_BUS_STATUS_OK) {
+		// 此时总线状态不确定，尝试发个 Stop 保护一下
+		__stop(cfg);
+		log_e("__i2c_read_reg: Fail! @ restart (Code: %d). Bus busy?", ret);
+		return ret;
+	}
+	// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
+	ret = __send_byte(cfg, (dev_addr << 1) | 0x01, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_read_reg: Fail! dev_addr(R)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
+		return I2C_BUS_STATUS_ERR_DEV_NONE;
+	}
+	// 读取数据
+	ret = __recv_byte(cfg, byte, false);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_read_reg: Fail! @ dev_addr(R)=0x%02X recv_byte (Code: %d)", dev_addr, ret);
+		return ret;
+	}
+//	__recv_byte(cfg, byte, ack);
+	return __stop(cfg);
 }
 
 static i2c_bus_status_t __i2c_write_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t byte) {
-	return __i2c_write_regs(handle, dev_addr, reg_addr, &byte, 1);
+#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("__i2c_write_reg: Fail! handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("__i2c_write_reg: Fail! user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+#endif	/* I2C_BUS_FAST */
+	i2c_bus_stm32_std_lib_sw_config_t *cfg = (i2c_bus_stm32_std_lib_sw_config_t *)handle->user_data;
+	i2c_bus_status_t ret;
+	// 发送起始信号
+	ret = __start(cfg);
+	if (ret != I2C_BUS_STATUS_OK) {
+		log_e("__i2c_write_reg: Fail! @ start (Code: %d). Bus busy?", ret);
+		return ret;
+	}
+	// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
+	ret = __send_byte(cfg, (dev_addr << 1) | 0x00, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_write_reg: Fail! @ dev_addr(W)=0x%02X NACK. Device not found? (Code: %d)", dev_addr, ret);
+		return I2C_BUS_STATUS_ERR_DEV_NONE;
+	}
+	// 发送寄存器地址
+	ret = __send_byte(cfg, reg_addr, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_write_reg: Fail! @ dev_addr(W)=0x%02X RegAddr=0x%02X NACK (Code: %d)", dev_addr, reg_addr, ret);
+		return I2C_BUS_STATUS_ERR_REG_NONE;
+	}
+	// 发送数据
+	ret = __send_byte(cfg, byte, true);
+	if (ret != I2C_BUS_STATUS_OK) {
+		__stop(cfg);
+		log_e("__i2c_write_reg: Fail! @ dev_addr(W)=0x%02X byte=0x%02X NACK (Code: %d)", dev_addr, byte, ret);
+		return ret;
+	}
+	return __stop(cfg);
 }
 
 static i2c_bus_ops_t __i2c_ops = {
@@ -565,20 +727,21 @@ static i2c_bus_ops_t __i2c_ops = {
 
 i2c_bus_status_t i2c_bus_stm32_std_lib_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_lib_sw_config_t *cfg) {
 	if (handle == NULL) {
-		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail handle == NULL");
+		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (cfg == NULL) {
-		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail cfg == NULL");
+		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail! cfg == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	handle->user_data = cfg;
 	handle->ops = &__i2c_ops;
 	i2c_bus_status_t ret = handle->ops->init(handle);
 	if (ret == I2C_BUS_STATUS_OK) {
-		log_i("i2c_bus_stm32_std_lib_sw_create_handle: Init Handle Success");
+		log_i("i2c_bus_stm32_std_lib_sw_create_handle: Success! Init Handle");
 	} else {
-		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail Init Handle Fail (Code: %d)", ret);
+		log_e("i2c_bus_stm32_std_lib_sw_create_handle: Fail! Init Handle Fail (Code: %d)", ret);
 	}
 	return ret;
 }
+
