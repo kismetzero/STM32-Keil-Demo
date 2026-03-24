@@ -1,6 +1,7 @@
 #include "DS3231.h"
 #include "i2c_bus.h"
 #include "delay.h"
+#include <time.h>
 
 #define LOG_TAG "DS3231"
 #include "elog.h"
@@ -32,6 +33,7 @@ DS3231_Status_t DS3231_Init(DS3231_Handle_t *dev, void *hi2c, uint8_t i2c_addr) 
 }
 
 DS3231_Status_t DS3231_Reset(DS3231_Handle_t *dev) {
+	struct tm time;
 	if (dev == NULL) {
 		log_e("DS3231_Reset: Fail! dev == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
@@ -51,7 +53,7 @@ DS3231_Status_t DS3231_Reset(DS3231_Handle_t *dev) {
 	return DS3231_STATUS_OK;
 }
 
-DS3231_Status_t DS3231_ReadStatus(DS3231_Handle_t *dev) {
+DS3231_Status_t DS3231_ReadStatus(DS3231_Handle_t *dev, uint8_t *data) {
 	if (dev == NULL) {
 		log_e("DS3231_ReadStatus: Fail! dev == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
@@ -68,10 +70,11 @@ DS3231_Status_t DS3231_ReadStatus(DS3231_Handle_t *dev) {
 		return DS3231_STATUS_ERR_I2C_ERR;
 	}
 	log_i("DS3231_ReadStatus: Success! status=0x%02X", status);
+	if (data != NULL) { *data = status; }
 	return DS3231_STATUS_OK;
 }
 
-DS3231_Status_t DS3231_ReadControl(DS3231_Handle_t *dev) {
+DS3231_Status_t DS3231_ReadControl(DS3231_Handle_t *dev, uint8_t *data) {
 	if (dev == NULL) {
 		log_e("DS3231_ReadControl: Fail! dev == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
@@ -88,10 +91,11 @@ DS3231_Status_t DS3231_ReadControl(DS3231_Handle_t *dev) {
 		return DS3231_STATUS_ERR_I2C_ERR;
 	}
 	log_i("DS3231_ReadControl: Success! control=0x%02X", control);
+	if (data != NULL) { *data = control; }
 	return DS3231_STATUS_OK;
 }
 
-DS3231_Status_t DS3231_ReadTime(DS3231_Handle_t *dev) {
+DS3231_Status_t DS3231_ReadTime(DS3231_Handle_t *dev, DS3231_Time_t *time) {
 	if (dev == NULL) {
 		log_e("DS3231_ReadTime: Fail! dev == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
@@ -100,9 +104,13 @@ DS3231_Status_t DS3231_ReadTime(DS3231_Handle_t *dev) {
 		log_e("DS3231_ReadTime: Fail! dev->hi2c == NULL");
 		return DS3231_STATUS_ERR_I2C_ERR;
 	}
+	if (time == NULL) {
+		log_e("DS3231_ReadTime: Fail! time == NULL");
+		return DS3231_STATUS_ERR_I2C_ERR;
+	}
 	i2c_bus_status_t i2c_ret;
 	uint8_t raw_time[7];
-	i2c_ret = i2c_read_regs(dev->hi2c, dev->i2c_addr, DS3231_REG_SECONDS, raw_time, 7);
+	i2c_ret = i2c_read_regs(dev->hi2c, dev->i2c_addr, DS3231_REG_SEC, raw_time, 7);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("DS3231_ReadTime: Fail! @ Read Seconds Register Fail (Code: %d)", i2c_ret);
 		return DS3231_STATUS_ERR_I2C_ERR;
@@ -110,5 +118,19 @@ DS3231_Status_t DS3231_ReadTime(DS3231_Handle_t *dev) {
 	for (uint8_t i = 0; i < 7; i++) {
 		log_i("DS3231_ReadTime: raw_time[%d]=0x%02X to-dec=%d", i, raw_time[i], DS3231_BCD2DEC(raw_time[i]));
 	}
+	time->sec = DS3231_BCD2DEC(raw_time[0] & DS3231_MASK_SEC);
+	time->min = DS3231_BCD2DEC(raw_time[1] & DS3231_MASK_MIN);
+	if (raw_time[2] & DS3231_BIT_HOUR_EN12H) {
+		time->en12h = true;
+		time->hour = DS3231_BCD2DEC(raw_time[2] & DS3231_MASK_HOUR_12H);
+		time->pm = raw_time[2] & DS3231_BIT_HOUR_PM;
+	} else {
+		time->en12h = false;
+		time->hour = DS3231_BCD2DEC(raw_time[2] & DS3231_MASK_HOUR_24H);
+	}
+	time->day = DS3231_BCD2DEC(raw_time[3] & DS3231_MASK_DAY);
+	time->date = DS3231_BCD2DEC(raw_time[4] & DS3231_MASK_DATE);
+	time->month = DS3231_BCD2DEC(raw_time[5] & DS3231_MASK_MONTH);
+	time->year = DS3231_BCD2DEC(raw_time[6] & DS3231_MASK_YEAR);
 	return DS3231_STATUS_OK;
 }

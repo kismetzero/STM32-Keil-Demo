@@ -530,9 +530,14 @@
               <FilePath>.\User\main.c</FilePath>
             </File>
             <File>
-              <FileName>system.h</FileName>
+              <FileName>my_system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\my_system.c</FilePath>
+            </File>
+            <File>
+              <FileName>my_system.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\User\system.h</FilePath>
+              <FilePath>.\User\my_system.h</FilePath>
             </File>
           </Files>
         </Group>

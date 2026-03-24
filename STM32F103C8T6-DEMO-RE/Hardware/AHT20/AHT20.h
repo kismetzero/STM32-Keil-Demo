@@ -1,7 +1,7 @@
 #ifndef __AHT20_H
 #define __AHT20_H
 
-#include "stdint.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 	extern "C" {

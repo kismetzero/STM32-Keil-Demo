@@ -1,7 +1,7 @@
 #ifndef __SHT40_H
 #define __SHT40_H
 
-#include "stdint.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 	extern "C" {

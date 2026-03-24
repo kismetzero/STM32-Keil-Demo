@@ -1,14 +1,7 @@
-#include "stm32f10x.h"
-#include "delay.h"
+#include "my_system.h"
+
+#define LOG_TAG "system"
 #include "elog.h"
-#include "i2c_bus.h"
-#include "i2c_bus_stm32_std_lib_sw.h"
-#include "spi_bus.h"
-#include "spi_bus_stm32_std_lib_sw.h"
-#include "AHT20.h"
-#include "SHT40.h"
-#include "W25QX.h"
-#include "DS3231.h"
 
 void elog_config_init() {
 	/* initialize EasyLogger */
@@ -113,6 +106,7 @@ void w25qx_config_init() {
 }
 
 DS3231_Handle_t ds3231_handle;
+DS3231_Time_t ds3231_time;
 void ds3231_config_init() {
 	DS3231_Status_t ret = DS3231_Init(&ds3231_handle, &swi2c_handle, 0);
 	if (ret != DS3231_STATUS_OK) {
@@ -132,34 +126,3 @@ void system_init() {
 	sht40_config_init();
 	ds3231_config_init();
 }
-
-//void aht20_test() {
-//	AHT20_Handle_t sensor;
-//	AHT20_Status_t ret;
-//	sensor.hi2c = &swi2c_handle;
-//	ret = AHT20_Init(&sensor);
-//	log_d("sensor-init: %d \n", ret);
-//	log_i("sensor-temp: %f \n", sensor.temperature);
-//	log_i("sensor-humi: %f \n", sensor.humidity);
-//
-//	ret = AHT20_Measure(&sensor);
-//	log_d("sensor-measure: %d \n", ret);
-//	log_i("sensor-temp: %f \n", sensor.temperature);
-//	log_i("sensor-humi: %f \n", sensor.humidity);
-//}
-
-//void sht40_test() {
-//	SHT40_Handle_t sensor;
-//	SHT40_Status_t ret;
-//	sensor.hi2c = &swi2c_handle;
-//	ret = SHT40_Init(&sensor);
-//	log_d("sensor-init: %d \n", ret);
-//	log_i("sensor-temp: %f \n", sensor.temperature);
-//	log_i("sensor-humi: %f \n", sensor.humidity);
-//
-//	ret = SHT40_Measure(&sensor);
-//	log_d("sensor-measure: %d \n", ret);
-//	log_i("sensor-temp: %f \n", sensor.temperature);
-//	log_i("sensor-humi: %f \n", sensor.humidity);
-//}
-

@@ -1,7 +1,7 @@
 #ifndef __W25QX_H
 #define __W25QX_H
 
-#include "stdint.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 	extern "C" {
