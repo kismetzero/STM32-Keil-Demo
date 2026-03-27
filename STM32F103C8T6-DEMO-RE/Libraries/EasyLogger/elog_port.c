@@ -28,6 +28,8 @@
  
 #include <elog.h>
 
+#include "my_system.h"
+
 #include "stm32f10x.h"
 #define SERIAL_USARTX			USART1
 #define SERIAL_USARTX_CLK		RCC_APB2Periph_USART1
@@ -130,7 +132,8 @@ const char *elog_port_get_time(void) {
     
     /* add your code here */
 
-    return "10:08:12";
+//    return "10:08:12";
+	return system_time;
 }
 
 /**

@@ -45,10 +45,10 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *dev, void *hi2c, uint8_t i2c_addr) {
 	float temperature = AHT20_CalcTemperature(dev->raw_data);
 	float humidity = AHT20_CalcHumidity(dev->raw_data);
 	if (humidity < 0) {
-		log_w("AHT20_Init: humidity < 0");
+		log_w("AHT20_Init: Warning! humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("AHT20_Init: humidity > 100");
+		log_w("AHT20_Init: Warning! humidity > 100");
 		humidity = 100;
 	}
 	dev->temperature = temperature;
@@ -104,10 +104,10 @@ AHT20_Status_t AHT20_Measure(AHT20_Handle_t *dev) {
 	float temperature = AHT20_CalcTemperature(dev->raw_data);
 	float humidity = AHT20_CalcHumidity(dev->raw_data);
 	if (humidity < 0) {
-		log_w("AHT20_Measure: humidity < 0");
+		log_w("AHT20_Measure: Warning! humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("AHT20_Measure: humidity > 100");
+		log_w("AHT20_Measure: Warning! humidity > 100");
 		humidity = 100;
 	}
 	dev->temperature = temperature;

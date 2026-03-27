@@ -21,7 +21,7 @@ typedef enum {
  */
 #define DS3231_REG_SEC			0x00U	// 秒钟 (00-59)
 #define DS3231_REG_MIN			0x01U	// 分钟 (00-59)
-#define DS3231_REG_HOUR			0x02U	// 时钟 (00-24 or 01-12 + AM/PM)
+#define DS3231_REG_HOUR			0x02U	// 时钟 (00-23 or 01-12 + AM/PM)
 #define DS3231_REG_DAY			0x03U	// 星期 (01-07) week day 
 #define DS3231_REG_DATE			0x04U	// 日期 (01-31) month day 
 #define DS3231_REG_MONTH		0x05U	// 月份 (01-12 + Century 世纪位)
@@ -29,11 +29,11 @@ typedef enum {
 
 #define DS3231_REG_ALM1_SEC		0x07U	// 秒钟 (00-59)
 #define DS3231_REG_ALM1_MIN		0x08U	// 分钟 (00-59)
-#define DS3231_REG_ALM1_HOUR	0x09U	// 时钟 (00-24 or 01-12 + AM/PM)
+#define DS3231_REG_ALM1_HOUR	0x09U	// 时钟 (00-23 or 01-12 + AM/PM)
 #define DS3231_REG_ALM1_DYDT	0x0AU	// 星期 (Day, 01-07) 日期 (Date, 01-31)
 
 #define DS3231_REG_ALM2_MIN		0x0BU	// 分钟 (00-59)
-#define DS3231_REG_ALM2_HOUR	0x0CU	// 时钟 (00-24 or 01-12 + AM/PM)
+#define DS3231_REG_ALM2_HOUR	0x0CU	// 时钟 (00-23 or 01-12 + AM/PM)
 #define DS3231_REG_ALM2_DYDT	0x0DU	// 星期 (Day, 01-07) 日期 (Date, 01-31)
 
 #define DS3231_REG_CONTROL		0x0EU	// 控制	Control
@@ -49,7 +49,7 @@ typedef enum {
 #define DS3231_MASK_DAY			(0x07U)		// 日期数据掩码, 低 6 位是数据 (01-07)
 #define DS3231_MASK_DATE		(0x3FU)		// 日期数据掩码, 低 6 位是数据 (01-31)
 #define DS3231_MASK_MONTH		(0x1FU)		// 月份数据掩码, 低 5 位是数据 (01-12)
-#define DS3231_MASK_YEAR		(0x00U)		// 年份数据掩码, 低 8 位是数据 (00-99)
+#define DS3231_MASK_YEAR		(0xFFU)		// 年份数据掩码, 低 8 位是数据 (00-99)
 
 #define DS3231_MASK_ALM_SEC		(0x7FU)		// 秒钟数据掩码, 低 7 位是数据 (00-59)
 #define DS3231_MASK_ALM_MIN		(0x7FU)		// 分钟数据掩码, 低 7 位是数据 (00-59)
@@ -100,21 +100,21 @@ typedef enum {
 #define DS3231_BIT_CTRL_RS1		(1U << 3)
 
 /* Interrupt Control: 中断控制
- * 0: 当闹钟匹配时，INT/SQW 引脚输出低电平脉冲 (中断模式)。
- * 1: INT/SQW 引脚输出方波 (方波输出模式)，闹钟标志位仍会置起但不触发引脚中断。
- * 注意：若 A1IE/A2IE 未使能，即使 INTCN=0 也不会触发中断。
+ * 0: INT/SQW 引脚输出方波 (方波输出模式)，闹钟标志位仍会置起但不触发引脚中断。
+ * 1: 当闹钟匹配时，INT/SQW 引脚输出低电平脉冲 (中断模式)。
+ * 注意：若 A1IE/A2IE 未使能，即使 INTCN=1 也不会触发中断。
  */
 #define DS3231_BIT_CTRL_INTCN	(1U << 2)
 
 /* Alarm 2 Interrupt Enable: 闹钟 2 中断使能
  * 0: 禁止闹钟 2 触发中断。
- * 1: 允许闹钟 2 匹配时置位 A2F 并触发 INT 引脚 (需 INTCN=0)。
+ * 1: 允许闹钟 2 匹配时置位 A2F 并触发 INT 引脚 (需 INTCN=1)。
  */
 #define DS3231_BIT_CTRL_A2IE	(1U << 1)
 
 /* Alarm 1 Interrupt Enable: 闹钟 1 中断使能
  * 0: 禁止闹钟 1 触发中断。
- * 1: 允许闹钟 1 匹配时置位 A1F 并触发 INT 引脚 (需 INTCN=0)。
+ * 1: 允许闹钟 1 匹配时置位 A1F 并触发 INT 引脚 (需 INTCN=1)。
  */
 #define DS3231_BIT_CTRL_A1IE	(1U << 0)  
 
@@ -126,7 +126,7 @@ typedef enum {
  * [操作]: 软件读取到此位为 '1' 后，应重新设置时间寄存器，并写入 '0' 清除此标志。
  * 			若不清除，下次掉电重启后该位可能依然保持为 '1'。
  */
-#define DS3231_BIT_STAT_OSF		(1U << 7)
+#define DS3231_BIT_STATUS_OSF		(1U << 7)
 
 /* Enable 32kHz Output: 32kHz 输出使能
  * [功能]: 控制是否从 32kHz 引脚输出标准的 32.768 kHz 正弦波/方波。
@@ -134,8 +134,13 @@ typedef enum {
  * 0: 禁用输出。
  * [应用场景]: 若系统不需要外部 32kHz 时钟源，可写 '0' 关闭以节省微安级电流。
  */
-#define DS3231_BIT_STAT_EN32KHZ	(1U << 3)
+#define DS3231_BIT_STATUS_EN32KHZ	(1U << 3)
 
+/* TCXO Busy: TCXO 功能忙标志
+ * 
+ * 
+ */
+#define DS3231_BIT_STATUS_BSY		(1U << 2)
 
 /* Alarm 2 Flag: 闹钟 2 中断标志
  * [触发条件]: 当当前时间与闹钟 2 的设置时间匹配时，硬件自动置 '1'。
@@ -144,7 +149,7 @@ typedef enum {
  * 		1 - 若控制寄存器的 INTCN=1 (方波模式)，此位仍会置 '1'，但不会影响引脚电平。
  * [操作]: 必须软件写入 '0' 清除。若不清除，中断引脚将一直保持低电平 (在中断模式下)。
  */
-#define DS3231_BIT_STAT_A2F		(1U << 1)
+#define DS3231_BIT_STATUS_A2F		(1U << 1)
 
 /* Alarm 1 Flag: 闹钟 1 中断标志
  * [触发条件]: 当当前时间与闹钟 1 的设置时间匹配时，硬件自动置 '1'。
@@ -154,45 +159,29 @@ typedef enum {
  * [操作]: 必须软件写入 '0' 清除。若不清除，中断引脚将一直保持低电平 (在中断模式下)。
  * [注意]: 如果同时触发了闹钟 1 和 2，两个标志位都会置 '1'，需分别清除。
  */
-#define DS3231_BIT_STAT_A1F		(1U << 0)  
+#define DS3231_BIT_STATUS_A1F		(1U << 0)  
 
-/*
- * @brief DS3231 寄存器结构体
- * @note 耗费内存，仅作参考
-typedef struct {
-	uint8_t seconds;
-	uint8_t minutes;
-	uint8_t hours;
-	uint8_t day;
-	uint8_t date;
-	uint8_t month;
-	uint8_t year;
-	uint8_t alarm1_seconds;
-	uint8_t alarm1_minutes;
-	uint8_t alarm1_hours;
-	uint8_t alarm1_day_date;
-	uint8_t alarm2_minutes;
-	uint8_t alarm2_hours;
-	uint8_t alarm2_day_date;
-	uint8_t control;
-	uint8_t status;
-	uint8_t aging_offset;
-	uint8_t temp_msb;
-	uint8_t temp_lsb;
-} DS3231_Register_t;
-*/
+typedef enum {
+    DS3231_SQW_1HZ		= 0,	// RS2=0, RS1=0
+	DS3231_SQW_1024HZ	= 1,	// RS2=0, RS1=1
+	DS3231_SQW_4096HZ	= 2,	// RS2=1, RS1=0
+	DS3231_SQW_8192HZ	= 3		// RS2=1, RS1=1
+} DS3231_SQW_Mode_t;
 
-typedef struct {
+typedef struct DS3231_DateTime_s DS3231_DateTime_t;
+
+struct DS3231_DateTime_s {
 	uint8_t sec;
 	uint8_t min;
 	uint8_t hour;
-	uint8_t day;
+	uint8_t week;
 	uint8_t date;
 	uint8_t month;
-	uint8_t year;
+	uint16_t year;
 	bool en12h;
 	bool pm;
-} DS3231_Time_t;
+//	bool century;
+};
 
 // DS3231 默认 I2C 地址
 #define DS3231_DEFAULT_I2C_ADDR	0x68 // 0110 1000
@@ -204,10 +193,20 @@ typedef struct {
 } DS3231_Handle_t;
 
 DS3231_Status_t DS3231_Init(DS3231_Handle_t *dev, void *hi2c, uint8_t i2c_addr);
-DS3231_Status_t DS3231_Reset(DS3231_Handle_t *dev);
-DS3231_Status_t DS3231_ReadStatus(DS3231_Handle_t *dev, uint8_t *data);
-DS3231_Status_t DS3231_ReadControl(DS3231_Handle_t *dev, uint8_t *data);
-DS3231_Status_t DS3231_ReadTime(DS3231_Handle_t *dev, DS3231_Time_t *time);
+DS3231_Status_t DS3231_SoftwareReset(DS3231_Handle_t *dev);
+DS3231_Status_t DS3231_ClearOSF(DS3231_Handle_t *dev);
+
+DS3231_Status_t DS3231_ReadControlRegister(DS3231_Handle_t *dev, uint8_t *data);
+DS3231_Status_t DS3231_ReadStatusRegister(DS3231_Handle_t *dev, uint8_t *data);
+
+DS3231_Status_t DS3231_GetDateTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_SetDateTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+
+DS3231_Status_t DS3231_GetTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_SetTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+
+DS3231_Status_t DS3231_GetDate(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_SetDate(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
 
 /**
  * @brief 将 BCD 码转换为十进制整数

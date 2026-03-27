@@ -86,7 +86,7 @@ static spi_bus_status_t __bus_init(spi_bus_handle_t *handle) {
 	// 计算并打印模式
 	uint8_t mode = cfg->mode;
 	if (mode > 0x03) {
-		log_w("__bus_init: Invalid mode %d detected! Auto-correcting to %d.", (uint8_t)mode, (uint8_t)(mode & 0x03));
+		log_w("__bus_init: Warning! Invalid mode %d detected! Auto-correcting to %d.", (uint8_t)mode, (uint8_t)(mode & 0x03));
 		mode &= 0x03;
 	}
 	cfg->mode = mode;
@@ -198,7 +198,7 @@ static spi_bus_status_t __bus_set_mode(spi_bus_handle_t *handle, spi_bus_mode_t 
 	}
 	spi_bus_stm32_std_lib_sw_bus_config_t *cfg = (spi_bus_stm32_std_lib_sw_bus_config_t *)handle->user_data;
 	if (mode > 0x03) {
-		log_w("__bus_set_mode: Invalid mode %d detected! Auto-correcting to %d.", (uint8_t)mode, (uint8_t)(mode & 0x03));
+		log_w("__bus_set_mode: Warning! Invalid mode %d detected! Auto-correcting to %d.", (uint8_t)mode, (uint8_t)(mode & 0x03));
 		mode &= 0x03;
 	}
 	cfg->mode = mode;

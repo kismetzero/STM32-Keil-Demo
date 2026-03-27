@@ -340,7 +340,7 @@
               <MiscControls>-Wno-invalid-utf8</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Libraries;.\System;.\Hardware</IncludePath>
+              <IncludePath>.\Libraries;.\System;.\Hardware;.\User</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -518,6 +518,16 @@
               <FileName>DS3231_i2c_bus.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\DS3231\DS3231_i2c_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>WS2812.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\WS2812\WS2812.h</FilePath>
+            </File>
+            <File>
+              <FileName>WS2812_stm32_std_lib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\WS2812\WS2812_stm32_std_lib.c</FilePath>
             </File>
           </Files>
         </Group>

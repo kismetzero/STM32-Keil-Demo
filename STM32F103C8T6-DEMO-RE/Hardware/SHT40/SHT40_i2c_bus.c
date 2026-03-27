@@ -69,7 +69,7 @@ SHT40_Status_t SHT40_Init(SHT40_Handle_t *dev, void *hi2c, uint8_t i2c_addr, SHT
 	}
 	dev->i2c_addr = i2c_addr;
 	if (rep < SHT40_REP_DEFAULT || rep > SHT40_REP_LOW) {
-		log_w("SHT40_Init: rep invalid! use SHT40_REP_DEFAULT");
+		log_w("SHT40_Init: Warning! rep invalid! use SHT40_REP_DEFAULT");
 		rep = SHT40_REP_DEFAULT;
 	}
 	dev->repeatability = rep;
@@ -123,10 +123,10 @@ SHT40_Status_t SHT40_Measure(SHT40_Handle_t *dev) {
 	float temperature = SHT40_GetTemperature(dev->raw_data);
 	float humidity = SHT40_GetHumidity(dev->raw_data);
 	if (humidity < 0) {
-		log_w("SHT40_Measure: humidity < 0");
+		log_w("SHT40_Measure: Warning! humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("SHT40_Measure: humidity > 100");
+		log_w("SHT40_Measure: Warning! humidity > 100");
 		humidity = 100;
 	}
 	dev->temperature = temperature;
@@ -168,10 +168,10 @@ SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *dev, SHT40_Heater_t heater) {
 	float temperature = SHT40_GetTemperature(dev->raw_data);
 	float humidity = SHT40_GetHumidity(dev->raw_data);
 	if (humidity < 0) {
-		log_w("SHT40_HeaterMeasure: humidity < 0 --> humidity = 0");
+		log_w("SHT40_HeaterMeasure: Warning! humidity < 0 --> humidity = 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("SHT40_HeaterMeasure: humidity > 100 --> humidity = 100");
+		log_w("SHT40_HeaterMeasure: Warning! humidity > 100 --> humidity = 100");
 		humidity = 100;
 	}
 	dev->temperature = temperature;
