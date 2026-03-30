@@ -440,14 +440,14 @@
               <FilePath>.\System\i2c_bus\i2c_bus.h</FilePath>
             </File>
             <File>
-              <FileName>i2c_bus_stm32_std_lib_sw.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std_lib_sw.h</FilePath>
+              <FileName>i2c_bus_stm32_std.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std.c</FilePath>
             </File>
             <File>
-              <FileName>i2c_bus_stm32_std_lib_sw_oop.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\i2c_bus_stm32_std_lib_sw_oop.c</FilePath>
+              <FileName>i2c_bus_stm32_std.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std.h</FilePath>
             </File>
             <File>
               <FileName>spi_bus.h</FileName>
@@ -455,24 +455,14 @@
               <FilePath>.\System\spi_bus.h</FilePath>
             </File>
             <File>
-              <FileName>spi_bus_stm32_std_lib_sw.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\System\spi_bus_stm32_std_lib_sw.h</FilePath>
-            </File>
-            <File>
-              <FileName>spi_bus_stm32_std_lib_sw_oop.c</FileName>
+              <FileName>spi_bus_stm32_std.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\System\spi_bus_stm32_std_lib_sw_oop.c</FilePath>
+              <FilePath>.\System\spi_bus\spi_bus_stm32_std.c</FilePath>
             </File>
             <File>
-              <FileName>Serial.h</FileName>
+              <FileName>spi_bus_stm32_std.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\System\Serial.h</FilePath>
-            </File>
-            <File>
-              <FileName>Serial_stm32_std_lib_usart1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\Serial_stm32_std_lib_usart1.c</FilePath>
+              <FilePath>.\System\spi_bus\spi_bus_stm32_std.h</FilePath>
             </File>
           </Files>
         </Group>

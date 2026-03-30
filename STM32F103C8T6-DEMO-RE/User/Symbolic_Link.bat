@@ -3,13 +3,13 @@ setlocal enabledelayedexpansion
 
 :: ================= 配置区域 =================
 :: 源文件夹路径 (包含 abc 开头文件的文件夹)
-set "SourceDir=C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware\WS2812"
+set "SourceDir=C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System\i2c_bus"
 
 :: 目标文件夹路径 (存放符号连接的文件夹)
-set "TargetDir=C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\Hardware"
+set "TargetDir=C:\PF\Project\KeilProjects\STM32-Keil-Demo\STM32F103C8T6-DEMO-RE\System"
 
 :: 文件名前缀匹配规则
-set "FilePrefix=WS2812"
+set "FilePrefix=i2c"
 :: ===========================================
 
 :: 检查源文件夹是否存在

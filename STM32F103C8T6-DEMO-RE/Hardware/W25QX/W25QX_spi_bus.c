@@ -44,7 +44,7 @@ W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *dev) {
 		log_e("W25QX_ReadID: Fail! dev->hspi == NULL");
 		return W25QX_STATUS_ERR_SPI_ERR;
 	}
-	uint8_t ret_data[3] = {0};
+	uint8_t raw_data[3] = {0};
 	spi_bus_status_t ret;
 	ret = spi_cs_low(dev->hspi);
 	if (ret != SPI_BUS_STATUS_OK) {
@@ -56,7 +56,7 @@ W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *dev) {
 		log_e("W25QX_ReadID: Fail! spi_write_byte (Code: %d)", ret);
 		return W25QX_STATUS_ERR_SPI_ERR;
 	}
-	ret = spi_read_bytes(dev->hspi, ret_data, 3);
+	ret = spi_read_bytes(dev->hspi, raw_data, 3);
 	if (ret != SPI_BUS_STATUS_OK) {
 		log_e("W25QX_ReadID: Fail! spi_read_bytes (Code: %d)", ret);
 		return W25QX_STATUS_ERR_SPI_ERR;
@@ -66,8 +66,8 @@ W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *dev) {
 		log_e("W25QX_ReadID: Fail! spi_cs_high fail (Code: %d)", ret);
 		return W25QX_STATUS_ERR_SPI_ERR;
 	}
-	uint16_t did = (ret_data[1] << 8) | ret_data[2];
-	log_i("W25QX_ReadID: Success! MID=0x%02X DID=0x%04X", ret_data[0], did);
+	uint16_t did = (raw_data[1] << 8) | raw_data[2];
+	log_i("W25QX_ReadID: Success! MID=0x%02X DID=0x%04X", raw_data[0], did);
 	return W25QX_STATUS_OK;
 }
 
