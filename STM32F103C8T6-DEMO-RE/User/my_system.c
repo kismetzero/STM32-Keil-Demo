@@ -41,17 +41,17 @@ void swi2c_config_init(void) {
 spi_bus_handle_t spi_bus_handle;
 spi_bus_stm32_std_sw_config_t swspi_bus_cfg;
 void swspi_bus_config_init(void) {
-	swspi_bus_cfg.miso_gpio_clk		= RCC_APB2Periph_GPIOA;
-	swspi_bus_cfg.miso_gpio_pin		= GPIO_Pin_6;
-	swspi_bus_cfg.miso_gpio_port	= GPIOA;
+	swspi_bus_cfg.sck_gpio_clk		= RCC_APB2Periph_GPIOA;
+	swspi_bus_cfg.sck_gpio_pin		= GPIO_Pin_5;
+	swspi_bus_cfg.sck_gpio_port		= GPIOA;
 	
 	swspi_bus_cfg.mosi_gpio_clk		= RCC_APB2Periph_GPIOA;
 	swspi_bus_cfg.mosi_gpio_pin		= GPIO_Pin_7;
 	swspi_bus_cfg.mosi_gpio_port	= GPIOA;
 	
-	swspi_bus_cfg.sck_gpio_clk		= RCC_APB2Periph_GPIOA;
-	swspi_bus_cfg.sck_gpio_pin		= GPIO_Pin_5;
-	swspi_bus_cfg.sck_gpio_port		= GPIOA;
+	swspi_bus_cfg.miso_gpio_clk		= RCC_APB2Periph_GPIOA;
+	swspi_bus_cfg.miso_gpio_pin		= GPIO_Pin_6;
+	swspi_bus_cfg.miso_gpio_port	= GPIOA;
 	
 	swspi_bus_cfg.mode				= 0;
 	
@@ -66,6 +66,12 @@ void swspi_bus_config_init(void) {
 spi_bus_stm32_std_hw_config_t hwspi_bus_cfg;
 void hwspi_bus_config_init(void) {
 	hwspi_bus_cfg.spi_periph	= SPI1;
+	hwspi_bus_cfg.spi_clk		= RCC_APB2Periph_SPI1;
+	hwspi_bus_cfg.spi_gpio_clk	= RCC_APB2Periph_GPIOA;
+	hwspi_bus_cfg.sck_gpio_pin	= GPIO_Pin_5;
+	hwspi_bus_cfg.mosi_gpio_pin	= GPIO_Pin_7;
+	hwspi_bus_cfg.miso_gpio_pin	= GPIO_Pin_6;
+	hwspi_bus_cfg.spi_gpio_port	= GPIOA;
 
 	hwspi_bus_cfg.mode			= 0;
 	

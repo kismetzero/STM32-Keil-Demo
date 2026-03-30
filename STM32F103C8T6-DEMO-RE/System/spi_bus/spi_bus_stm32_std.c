@@ -543,14 +543,14 @@ spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, sp
 	}
 	handle->user_data = cfg;
 	handle->ops = &spi_bus_stm32_std_hw_ops;
-	if (cfg->spi_periph == SPI1) {
-		cfg->spi_clk		= RCC_APB2Periph_SPI1;
-		cfg->spi_gpio_clk	= RCC_APB2Periph_GPIOA;
-		cfg->sck_gpio_pin	= GPIO_Pin_5;
-		cfg->mosi_gpio_pin	= GPIO_Pin_7;
-		cfg->miso_gpio_pin	= GPIO_Pin_6;
-		cfg->spi_gpio_port	= GPIOA;
-	}
+//	if (cfg->spi_periph == SPI1) {
+//		cfg->spi_clk		= RCC_APB2Periph_SPI1;
+//		cfg->spi_gpio_clk	= RCC_APB2Periph_GPIOA;
+//		cfg->sck_gpio_pin	= GPIO_Pin_5;
+//		cfg->mosi_gpio_pin	= GPIO_Pin_7;
+//		cfg->miso_gpio_pin	= GPIO_Pin_6;
+//		cfg->spi_gpio_port	= GPIOA;
+//	}
 	spi_bus_status_t ret = handle->ops->init(handle);
 	if (ret == SPI_BUS_STATUS_OK) {
 		log_i("spi_bus_stm32_std_hw_create_handle: Success! Init Handle");
