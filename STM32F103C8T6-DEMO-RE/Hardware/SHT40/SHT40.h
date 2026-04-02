@@ -38,22 +38,24 @@ typedef enum {
 } SHT40_Heater_t;
 
 // 定义 SHT40 设备句柄结构体
-typedef struct {
+typedef struct SHT40_Handle_s SHT40_Handle_t;
+struct SHT40_Handle_s {
 	void *hi2c;
 	uint8_t i2c_addr;
 	uint8_t raw_data[6];
 	float temperature;
 	float humidity;
 	SHT40_Repeatability_t repeatability;
-} SHT40_Handle_t;
+};
 
 // 设备初始化
-SHT40_Status_t SHT40_Init(SHT40_Handle_t *dev, void *hi2c, uint8_t i2c_addr, SHT40_Repeatability_t rep);
-SHT40_Status_t SHT40_Reset(SHT40_Handle_t *dev);		// 软复位
-SHT40_Status_t SHT40_Measure(SHT40_Handle_t *dev);		// 开启测量并读取
+SHT40_Status_t SHT40_Init(SHT40_Handle_t *handle, void *hi2c, uint8_t i2c_addr, SHT40_Repeatability_t rep);
+SHT40_Status_t SHT40_Reset(SHT40_Handle_t *handle);			// 软复位
+SHT40_Status_t SHT40_Measure(SHT40_Handle_t *handle);		// 开启测量并读取
+SHT40_Status_t SHT40_SetRepeatability(SHT40_Handle_t *handle, SHT40_Repeatability_t rep);
 
 // 开启内置加热器测量并读取（！！慎用！！）
-SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *dev, SHT40_Heater_t heater);	
+SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *handle, SHT40_Heater_t heater);	
 
 #ifdef __cplusplus
 }

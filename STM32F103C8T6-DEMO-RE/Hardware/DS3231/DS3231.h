@@ -192,21 +192,21 @@ typedef struct {
 	uint8_t i2c_addr;
 } DS3231_Handle_t;
 
-DS3231_Status_t DS3231_Init(DS3231_Handle_t *dev, void *hi2c, uint8_t i2c_addr);
-DS3231_Status_t DS3231_SoftwareReset(DS3231_Handle_t *dev);
-DS3231_Status_t DS3231_ClearOSF(DS3231_Handle_t *dev);
+DS3231_Status_t DS3231_Init(DS3231_Handle_t *handle, void *hi2c, uint8_t i2c_addr);
+DS3231_Status_t DS3231_SoftwareReset(DS3231_Handle_t *handle);
+DS3231_Status_t DS3231_ClearOSF(DS3231_Handle_t *handle);
 
-DS3231_Status_t DS3231_ReadControlRegister(DS3231_Handle_t *dev, uint8_t *data);
-DS3231_Status_t DS3231_ReadStatusRegister(DS3231_Handle_t *dev, uint8_t *data);
+DS3231_Status_t DS3231_ReadControlRegister(DS3231_Handle_t *handle, uint8_t *data);
+DS3231_Status_t DS3231_ReadStatusRegister(DS3231_Handle_t *handle, uint8_t *data);
 
-DS3231_Status_t DS3231_GetDateTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
-DS3231_Status_t DS3231_SetDateTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_GetDateTime(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_SetDateTime(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
 
-DS3231_Status_t DS3231_GetTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
-DS3231_Status_t DS3231_SetTime(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_GetTime(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_SetTime(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
 
-DS3231_Status_t DS3231_GetDate(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
-DS3231_Status_t DS3231_SetDate(DS3231_Handle_t *dev, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_GetDate(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
+DS3231_Status_t DS3231_SetDate(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
 
 /**
  * @brief 将 BCD 码转换为十进制整数

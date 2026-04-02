@@ -12,7 +12,7 @@ typedef enum {
 	SPI_BUS_STATUS_OK = 0,
 	SPI_BUS_STATUS_ERR_BUSY,
 	SPI_BUS_STATUS_ERR_TIMEOUT,
-	SPI_BUS_STATUS_ERR_INVALID_PARAM
+	SPI_BUS_STATUS_ERR_INVALID_PARAM,
 } spi_bus_status_t;
 
 // SPI 模式定义 (CPOL, CPHA)
@@ -67,21 +67,12 @@ struct spi_cs_ops_s {
 	spi_bus_status_t (*low)(spi_cs_handle_t *handle);
 };
 
-//spi_bus_status_t spi_cs_high(spi_dev_handle_t *handle);
-//spi_bus_status_t spi_cs_low(spi_dev_handle_t *handle);
-
-//spi_bus_status_t spi_read_byte(spi_dev_handle_t *handle, uint8_t *byte);
-//spi_bus_status_t spi_write_byte(spi_dev_handle_t *handle, uint8_t byte);
-//spi_bus_status_t spi_switch_byte(spi_dev_handle_t *handle, uint8_t tx, uint8_t *rx);
-
-//spi_bus_status_t spi_read_bytes(spi_dev_handle_t *handle, uint8_t *data, uint16_t len);
-//spi_bus_status_t spi_write_bytes(spi_dev_handle_t *handle, const uint8_t *data, uint16_t len);
-//spi_bus_status_t spi_switch_bytes(spi_dev_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len);
-
-//spi_bus_status_t spi_dev_set_mode(spi_dev_handle_t *handle, spi_bus_mode_t mode);
-
-//spi_bus_status_t spi_master_transmit(spi_dev_handle_t *handle, const uint8_t *data, uint16_t len);
-//spi_bus_status_t spi_master_receive(spi_dev_handle_t *handle, uint8_t *data, uint16_t len);
+static inline spi_bus_status_t spi_cs_init(spi_dev_handle_t *handle) {
+	if (handle == NULL || handle->cs == NULL || handle->cs->ops == NULL || handle->cs->ops->init == NULL) {
+        return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+    }
+    return handle->cs->ops->init(handle->cs);
+}
 
 static inline spi_bus_status_t spi_cs_high(spi_dev_handle_t *handle) {
 	if (handle == NULL || handle->cs == NULL || handle->cs->ops == NULL || handle->cs->ops->high == NULL) {
@@ -95,6 +86,13 @@ static inline spi_bus_status_t spi_cs_low(spi_dev_handle_t *handle) {
         return SPI_BUS_STATUS_ERR_INVALID_PARAM;
     }
     return handle->cs->ops->low(handle->cs);
+}
+
+static inline spi_bus_status_t spi_bus_init(spi_dev_handle_t *handle) {
+	if (handle == NULL || handle->bus == NULL || handle->bus->ops == NULL || handle->bus->ops->init == NULL) {
+        return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+    }
+    return handle->bus->ops->init(handle->bus);
 }
 
 static inline spi_bus_status_t spi_read_byte(spi_dev_handle_t *handle, uint8_t *byte) {
@@ -145,9 +143,6 @@ static inline spi_bus_status_t spi_dev_set_mode(spi_dev_handle_t *handle, spi_bu
     }
     return handle->bus->ops->set_mode(handle->bus, mode);
 }
-
-//static inline spi_bus_status_t spi_master_transmit(spi_dev_handle_t *handle, const uint8_t *data, uint16_t len);
-//static inline spi_bus_status_t spi_master_receive(spi_dev_handle_t *handle, uint8_t *data, uint16_t len);
 
 #ifdef __cplusplus
 }

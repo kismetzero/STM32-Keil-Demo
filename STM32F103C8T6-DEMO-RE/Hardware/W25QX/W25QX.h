@@ -20,11 +20,11 @@ typedef struct {
 	void *hspi;
 } W25QX_Handle_t;
 
-W25QX_Status_t W25QX_Init(W25QX_Handle_t *dev, void *hspi);
-W25QX_Status_t W25QX_Reset(W25QX_Handle_t *dev);
-W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *dev);
-W25QX_Status_t W25QX_ReadData(W25QX_Handle_t *dev);
-W25QX_Status_t W25QX_WriteData(W25QX_Handle_t *dev);
+W25QX_Status_t W25QX_Init(W25QX_Handle_t *handle, void *hspi);
+W25QX_Status_t W25QX_Reset(W25QX_Handle_t *handle);
+W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *handle);
+W25QX_Status_t W25QX_ReadData(W25QX_Handle_t *handle);
+W25QX_Status_t W25QX_WriteData(W25QX_Handle_t *handle);
 
 #ifdef __cplusplus
 }

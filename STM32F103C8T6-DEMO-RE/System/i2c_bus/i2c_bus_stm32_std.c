@@ -646,7 +646,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_reg(i2c_bus_handle_t *han
 	return i2c_bus_stm32_std_sw_stop(cfg);
 }
 
-static i2c_bus_ops_t __i2c_ops = {
+static i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.init = i2c_bus_stm32_std_sw_i2c_init,
 	.start = i2c_bus_stm32_std_sw_i2c_start,
 	.stop = i2c_bus_stm32_std_sw_i2c_stop,
@@ -661,7 +661,7 @@ static i2c_bus_ops_t __i2c_ops = {
 	.read_reg = i2c_bus_stm32_std_sw_i2c_read_reg,
 	.write_reg = i2c_bus_stm32_std_sw_i2c_write_reg,
 	.read_regs = i2c_bus_stm32_std_sw_i2c_read_regs,
-	.write_regs = i2c_bus_stm32_std_sw_i2c_write_regs
+	.write_regs = i2c_bus_stm32_std_sw_i2c_write_regs,
 };
 
 i2c_bus_status_t i2c_bus_stm32_std_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_sw_config_t *cfg) {
@@ -674,7 +674,7 @@ i2c_bus_status_t i2c_bus_stm32_std_sw_create_handle(i2c_bus_handle_t *handle, i2
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	handle->user_data = cfg;
-	handle->ops = &__i2c_ops;
+	handle->ops = &i2c_bus_stm32_std_sw_ops;
 	i2c_bus_status_t ret = handle->ops->init(handle);
 	if (ret == I2C_BUS_STATUS_OK) {
 		log_i("i2c_bus_stm32_std_sw_create_handle: Success! Init Handle");

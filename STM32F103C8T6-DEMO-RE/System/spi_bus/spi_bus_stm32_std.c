@@ -4,7 +4,7 @@
 #define LOG_TAG "spi_impl"
 #include "elog.h"
 
-#define SPI_BUS_FAST 0
+#define SPI_BUS_FAST 1
 
 //=====================================================================================================
 // SPI SW BUS OOP
@@ -218,7 +218,7 @@ static spi_bus_ops_t spi_bus_stm32_std_sw_ops = {
 	.switch_bytes = spi_bus_stm32_std_sw_switch_bytes,
 	.read_bytes = spi_bus_stm32_std_sw_read_bytes,
 	.write_bytes = spi_bus_stm32_std_sw_write_bytes,
-	.set_mode = spi_bus_stm32_std_sw_set_mode
+	.set_mode = spi_bus_stm32_std_sw_set_mode,
 };
 
 spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_sw_config_t *cfg) {
@@ -309,7 +309,7 @@ static spi_bus_status_t spi_bus_stm32_std_cs_low(spi_cs_handle_t *handle) {
 static spi_cs_ops_t __cs_ops = {
 	.init = spi_bus_stm32_std_cs_init,
 	.high = spi_bus_stm32_std_cs_high,
-	.low = spi_bus_stm32_std_cs_low
+	.low = spi_bus_stm32_std_cs_low,
 };
 
 spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi_bus_stm32_std_cs_config_t *cfg) {
@@ -529,7 +529,7 @@ static spi_bus_ops_t spi_bus_stm32_std_hw_ops = {
 	.switch_bytes = spi_bus_stm32_std_hw_switch_bytes,
 	.read_bytes = spi_bus_stm32_std_hw_read_bytes,
 	.write_bytes = spi_bus_stm32_std_hw_write_bytes,
-	.set_mode = spi_bus_stm32_std_hw_set_mode
+	.set_mode = spi_bus_stm32_std_hw_set_mode,
 };
 
 spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_hw_config_t *cfg) {
@@ -774,7 +774,7 @@ static spi_bus_ops_t spi_bus_stm32_std_SW_ops = {
 	.switch_bytes = spi_bus_stm32_std_SW_switch_bytes,
 	.read_bytes = spi_bus_stm32_std_SW_read_bytes,
 	.write_bytes = spi_bus_stm32_std_SW_write_bytes,
-	.set_mode = spi_bus_stm32_std_SW_set_mode
+	.set_mode = spi_bus_stm32_std_SW_set_mode,
 };
 
 spi_bus_status_t spi_bus_stm32_std_SW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_SW_config_t *cfg) {
@@ -988,7 +988,7 @@ static spi_bus_ops_t spi_bus_stm32_std_HW_ops = {
 	.switch_bytes = spi_bus_stm32_std_HW_switch_bytes,
 	.read_bytes = spi_bus_stm32_std_HW_read_bytes,
 	.write_bytes = spi_bus_stm32_std_HW_write_bytes,
-	.set_mode = spi_bus_stm32_std_HW_set_mode
+	.set_mode = spi_bus_stm32_std_HW_set_mode,
 };
 
 spi_bus_status_t spi_bus_stm32_std_HW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_HW_config_t *cfg) {

@@ -2,6 +2,7 @@
 #define __WS2812_H
 
 #include <stdint.h>
+#include "stm32f10x.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -14,12 +15,11 @@ typedef enum {
 } WS2812_Status_t;
 
 typedef struct {
-	void *gpio;
 	uint16_t led_count;
-	
 } WS2812_Handle_t;
 
-void WS2812_Init(WS2812_Handle_t *dev, void *gpio);
+void WS2812_Init(WS2812_Handle_t *dev);
+
 
 #ifdef __cplusplus
 }
