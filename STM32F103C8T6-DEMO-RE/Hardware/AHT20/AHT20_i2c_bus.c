@@ -10,22 +10,18 @@ static const uint8_t AHT20_ResetCommand			=	0xBA;
 static const uint8_t AHT20_MeasureCommand[]		=	{0xAC, 0x33, 0x00};
 
 static inline float AHT20_CalcTemperature(const uint8_t *data) {
-//	uint32_t raw_temperature;
-//	raw_temperature = (((data[3] & 0x0F) << 16) | (data[4] << 8)) | data[5];
-//	return (((raw_temperature * 200.0f) / (1 << 20)) - 50.0f);
 	uint32_t raw_temperature =	(uint32_t)(data[3] & 0x0F) << 16 |
 								(uint32_t)data[4] << 8 |
 								(uint32_t)data[5];
+//	return (((raw_temperature * 200.0f) / (1 << 20)) - 50.0f);
 	return (raw_temperature * 0.00019073486f) - 50.0f;
 }
 
 static inline float AHT20_CalcHumidity(const uint8_t *data) {
-//	uint32_t raw_humidity;
-//	raw_humidity = ((data[1] << 12) | (data[2] << 4)) | (data[3] >> 4);
-//	return ((raw_humidity * 100.0f) / (1 << 20));
 	uint32_t raw_humidity = (uint32_t)data[1] << 12 |
 							(uint32_t)data[2] << 4 |
 							(uint32_t)data[3] >> 4;
+//	return ((raw_humidity * 100.0f) / (1 << 20));
 	return raw_humidity * 0.00009536743f;
 }
 

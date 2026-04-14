@@ -38,18 +38,14 @@ static inline bool SHT40_CheckCRC(const uint8_t *data) {
 }
 
 static inline float SHT40_CalcTemperature(const uint8_t *data) {
-//	uint16_t raw_temperature;
-//	raw_temperature = (data[0]  << 8) | data[1];
-//	return (-45.0f + 175.0f * raw_temperature / 65535.0f);
 	uint16_t raw_temperature = (uint16_t)data[0] << 8 | (uint16_t)data[1];
+//	return (-45.0f + 175.0f * raw_temperature / 65535.0f);
 	return -45.0f + (raw_temperature * 0.00267032883f);
 }
 
 static inline float SHT40_CalcHumidity(const uint8_t *data) {
-//	uint16_t raw_humidity;
-//	raw_humidity = (data[3] << 8) | data[4];
-//	return (-6.0f + 125.0f * raw_humidity / 65535.0f);
 	uint16_t raw_humidity = (uint16_t)data[3] << 8 | (uint16_t)data[4];
+//	return (-6.0f + 125.0f * raw_humidity / 65535.0f);
 	return -6.0f + (raw_humidity * 0.00190737773f);
 }
 

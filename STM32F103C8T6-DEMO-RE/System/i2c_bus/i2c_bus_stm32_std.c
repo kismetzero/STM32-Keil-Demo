@@ -154,11 +154,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_start(i2c_bus_handle_t *handle)
 		log_e("i2c_bus_stm32_std_sw_i2c_start: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_start: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_start((i2c_bus_stm32_std_sw_config_t *)handle->user_data);
 	#if I2C_BUS_FAST != 2
 	if (ret != I2C_BUS_STATUS_OK) {
@@ -174,11 +174,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_stop(i2c_bus_handle_t *handle) 
 		log_e("i2c_bus_stm32_std_sw_i2c_stop: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_stop: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	return i2c_bus_stm32_std_sw_stop((i2c_bus_stm32_std_sw_config_t *)handle->user_data);
 }
 
@@ -188,11 +188,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_ack(i2c_bus_handle_t *hand
 		log_e("i2c_bus_stm32_std_sw_i2c_send_ack: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_send_ack: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	return i2c_bus_stm32_std_sw_send_ack((i2c_bus_stm32_std_sw_config_t *)handle->user_data, ack);
 }
 
@@ -202,11 +202,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_wait_ack(i2c_bus_handle_t *hand
 		log_e("i2c_bus_stm32_std_sw_i2c_wait_ack: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_wait_ack: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_wait_ack((i2c_bus_stm32_std_sw_config_t *)handle->user_data);
 	#if I2C_BUS_FAST != 2
 	if (ret != I2C_BUS_STATUS_OK) {
@@ -223,11 +223,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_recv_byte(i2c_bus_handle_t *han
 		log_e("i2c_bus_stm32_std_sw_i2c_recv_byte: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_recv_byte: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	if (byte == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_recv_byte: Fail! byte == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -242,11 +242,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_byte(i2c_bus_handle_t *han
 		log_e("i2c_bus_stm32_std_sw_i2c_send_byte: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_send_byte: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	return i2c_bus_stm32_std_sw_send_byte((i2c_bus_stm32_std_sw_config_t *)handle->user_data, byte);
 }
 
@@ -256,11 +256,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *ha
 		log_e("i2c_bus_stm32_std_sw_i2c_read_bytes: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_bytes: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_bytes: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -294,16 +294,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *ha
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_bytes(i2c_bus_handle_t *handle, uint8_t dev_addr, const uint8_t *data, uint16_t len) {
-#if I2C_BUS_FAST == 0
+	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_bytes: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_bytes: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_bytes: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -342,16 +342,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_bytes(i2c_bus_handle_t *h
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_byte(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *byte) {
-#if I2C_BUS_FAST == 0
+	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_byte: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_byte: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	if (byte == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_byte: Fail! byte == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -384,11 +384,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_byte(i2c_bus_handle_t *ha
 		log_e("i2c_bus_stm32_std_sw_i2c_write_byte: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_byte: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
 	i2c_bus_status_t ret;
 	// 发送起始信号
@@ -417,16 +417,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_byte(i2c_bus_handle_t *ha
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint16_t len) {
-#if I2C_BUS_FAST == 0
+	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_regs: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_regs: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_regs: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -484,16 +484,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_regs(i2c_bus_handle_t *han
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_regs(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, uint16_t len) {
-#if I2C_BUS_FAST == 0
+	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_regs: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_regs: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	if (data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_regs: Fail! data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -540,16 +540,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_regs(i2c_bus_handle_t *ha
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t *byte) {
-#if I2C_BUS_FAST == 0
+	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_reg: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_reg: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	if (byte == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_read_reg: Fail! byte == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -601,16 +601,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_reg(i2c_bus_handle_t *hand
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t byte) {
-#if I2C_BUS_FAST == 0
+	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_reg: Fail! handle == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	#endif	/* I2C_BUS_FAST */
 	if (handle->user_data == NULL) {
 		log_e("i2c_bus_stm32_std_sw_i2c_write_reg: Fail! user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-#endif	/* I2C_BUS_FAST */
 	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
 	i2c_bus_status_t ret;
 	// 发送起始信号
@@ -673,8 +673,18 @@ i2c_bus_status_t i2c_bus_stm32_std_sw_create_handle(i2c_bus_handle_t *handle, i2
 		log_e("i2c_bus_stm32_std_sw_create_handle: Fail! cfg == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	
+	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->scl_gpio_clk));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->scl_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->scl_gpio_port));
+	
+	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->sda_gpio_clk));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->sda_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->sda_gpio_port));
+	
 	handle->user_data = cfg;
 	handle->ops = &i2c_bus_stm32_std_sw_ops;
+	
 	i2c_bus_status_t ret = handle->ops->init(handle);
 	if (ret == I2C_BUS_STATUS_OK) {
 		log_i("i2c_bus_stm32_std_sw_create_handle: Success! Init Handle");

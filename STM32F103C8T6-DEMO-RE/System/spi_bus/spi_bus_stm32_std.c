@@ -230,8 +230,22 @@ spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, sp
 		log_e("spi_bus_stm32_std_sw_bus_create_handle: Fail! cfg == NULL");
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	
+	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->sck_gpio_clk));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->sck_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->sck_gpio_port));
+	
+	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->mosi_gpio_clk));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->mosi_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->mosi_gpio_port));
+	
+	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->miso_gpio_clk));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->miso_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->miso_gpio_port));
+	
 	handle->user_data = cfg;
 	handle->ops = &spi_bus_stm32_std_sw_ops;
+	
 	spi_bus_status_t ret = handle->ops->init(handle);
 	if (ret == SPI_BUS_STATUS_OK) {
 		log_i("spi_bus_stm32_std_sw_bus_create_handle: Success! Init Handle");
@@ -541,8 +555,23 @@ spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, sp
 		log_e("spi_bus_stm32_std_hw_create_handle: Fail! cfg == NULL");
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	
+	if (cfg->spi_periph == SPI1) {
+		ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->spi_clk));
+	} else {
+		ELOG_ASSERT(IS_RCC_APB1_PERIPH(cfg->spi_clk));
+	}
+	
+	ELOG_ASSERT(IS_SPI_ALL_PERIPH(cfg->spi_periph));
+	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->spi_gpio_clk));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->sck_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->mosi_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_PIN(cfg->miso_gpio_pin));
+	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->spi_gpio_port));
+	
 	handle->user_data = cfg;
 	handle->ops = &spi_bus_stm32_std_hw_ops;
+	
 //	if (cfg->spi_periph == SPI1) {
 //		cfg->spi_clk		= RCC_APB2Periph_SPI1;
 //		cfg->spi_gpio_clk	= RCC_APB2Periph_GPIOA;
@@ -551,6 +580,7 @@ spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, sp
 //		cfg->miso_gpio_pin	= GPIO_Pin_6;
 //		cfg->spi_gpio_port	= GPIOA;
 //	}
+	
 	spi_bus_status_t ret = handle->ops->init(handle);
 	if (ret == SPI_BUS_STATUS_OK) {
 		log_i("spi_bus_stm32_std_hw_create_handle: Success! Init Handle");

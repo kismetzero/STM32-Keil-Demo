@@ -64,6 +64,14 @@ static spi_dev_handle_t w25qx_spi_handle = {
 	.cs		= &w25qx_cs_handle,
 };
 
+//void my_elog_assert_hook(const char* expr, const char* func, size_t line){
+//	log_a("Assert failed: (%s) in %s:%d", expr, func, line);
+//	
+//	while (1) {
+//        __NOP(); 
+//    }
+//}
+
 static void elog_config_init(void) {
 	/* initialize EasyLogger */
 	ElogErrCode ret = elog_init();
@@ -75,6 +83,7 @@ static void elog_config_init(void) {
 	elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
 	elog_set_fmt(ELOG_LVL_DEBUG, ELOG_FMT_ALL & ~(ELOG_FMT_FUNC | ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
 	elog_set_fmt(ELOG_LVL_VERBOSE, ELOG_FMT_ALL & ~(ELOG_FMT_FUNC | ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+//	elog_assert_set_hook(my_elog_assert_hook);
 	/* start EasyLogger */
 	elog_start();
 }
