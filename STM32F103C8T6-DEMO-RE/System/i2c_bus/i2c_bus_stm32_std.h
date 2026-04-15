@@ -9,13 +9,12 @@
 #endif
 
 typedef struct {
-	uint32_t		scl_gpio_clk;
-	uint16_t		scl_gpio_pin;
 	GPIO_TypeDef*	scl_gpio_port;
-	
-	uint32_t		sda_gpio_clk;
-	uint16_t		sda_gpio_pin;
 	GPIO_TypeDef*	sda_gpio_port;
+	uint32_t		scl_gpio_clk;
+	uint32_t		sda_gpio_clk;
+	uint16_t		scl_gpio_pin;
+	uint16_t		sda_gpio_pin;
 } i2c_bus_stm32_std_sw_config_t;
 
 i2c_bus_status_t i2c_bus_stm32_std_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_sw_config_t *cfg);

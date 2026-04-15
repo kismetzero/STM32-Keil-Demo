@@ -464,6 +464,16 @@
               <FileType>5</FileType>
               <FilePath>.\System\spi_bus\spi_bus_stm32_std.h</FilePath>
             </File>
+            <File>
+              <FileName>Serial.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\System\Serial\Serial.h</FilePath>
+            </File>
+            <File>
+              <FileName>Serial_stm32_std_lib_usart1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\Serial\Serial_stm32_std_lib_usart1.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

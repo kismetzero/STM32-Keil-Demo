@@ -30,14 +30,11 @@
 
 #include "my_system.h"
 
-#include "stm32f10x.h"
-#define SERIAL_USARTX			USART1
-#define SERIAL_USARTX_CLK		RCC_APB2Periph_USART1
-#define SERIAL_GPIO_CLK			RCC_APB2Periph_GPIOA
-#define SERIAL_TX_GPIO_PIN		GPIO_Pin_9
-#define SERIAL_RX_GPIO_PIN		GPIO_Pin_10
-#define SERIAL_GPIO_PORT		GPIOA
-#define SERIAL_BaudRate			115200
+#include "Serial.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
+
+static SemaphoreHandle_t elog_mutex = NULL;
 
 /**
  * EasyLogger port initialize
@@ -48,31 +45,13 @@ ElogErrCode elog_port_init(void) {
     ElogErrCode result = ELOG_NO_ERR;
 
     /* add your code here */
-
-	RCC_APB2PeriphClockCmd(SERIAL_USARTX_CLK, ENABLE);
-	RCC_APB2PeriphClockCmd(SERIAL_GPIO_CLK, ENABLE);
 	
-	GPIO_InitTypeDef GPIO_InitStructure;
-	//GPIO_StructInit(&GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_InitStructure.GPIO_Pin = SERIAL_TX_GPIO_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(SERIAL_GPIO_PORT, &GPIO_InitStructure);
+	Serial_Init(0);
 	
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.GPIO_Pin = SERIAL_RX_GPIO_PIN;
-	GPIO_Init(SERIAL_GPIO_PORT, &GPIO_InitStructure);
-	
-	USART_InitTypeDef USART_InitStructure;
-	USART_InitStructure.USART_BaudRate = SERIAL_BaudRate;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_Init(SERIAL_USARTX, &USART_InitStructure);
-	
-	USART_Cmd(SERIAL_USARTX, ENABLE);
+	elog_mutex = xSemaphoreCreateMutex();
+	if (elog_mutex == NULL) {
+		return -1;
+	}
     
     return result;
 }
@@ -98,8 +77,7 @@ void elog_port_output(const char *log, size_t size) {
     /* add your code here */
 
 	for (size_t i = 0; i < size; i++) {
-		USART_SendData(SERIAL_USARTX, log[i]);
-		while(USART_GetFlagStatus(SERIAL_USARTX, USART_FLAG_TXE) == RESET);
+		Serial_SendByte(log[i]);
 	}
 }
 
@@ -110,7 +88,11 @@ void elog_port_output_lock(void) {
     
     /* add your code here */
 
-	__disable_irq(); /* 关闭全局中断 */
+//	__disable_irq();	// 裸机，关闭全局中断
+	
+	if (elog_mutex != NULL) {
+		xSemaphoreTake(elog_mutex, portMAX_DELAY);
+	}
 }
 
 /**
@@ -120,7 +102,11 @@ void elog_port_output_unlock(void) {
     
     /* add your code here */
 
-	__enable_irq(); /* 开启全局中断 */
+//	__enable_irq();		// 裸机，开启全局中断
+	
+	if (elog_mutex != NULL) {
+		xSemaphoreGive(elog_mutex);
+	}
 }
 
 /**
@@ -157,5 +143,7 @@ const char *elog_port_get_t_info(void) {
     
     /* add your code here */
 
-	return "tid:24";
+//	return "tid:24";
+	
+	return (const char*)pcTaskGetName(NULL);
 }

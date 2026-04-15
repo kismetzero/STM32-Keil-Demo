@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define LOG_TAG "system"
+#define LOG_TAG "main"
 #include "elog.h"
 
 // 定义任务句柄
@@ -15,7 +15,7 @@ void vTask1(void *pvParameters)
     while(1)
     {
 		system_sync_time();
-        log_i("task1: %s", system_time);
+        log_a("task1: %s", system_time);
         vTaskDelay(500 / portTICK_PERIOD_MS); // 延时500ms
     }
 }

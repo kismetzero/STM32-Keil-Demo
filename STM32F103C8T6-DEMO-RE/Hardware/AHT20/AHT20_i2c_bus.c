@@ -27,65 +27,67 @@ static inline float AHT20_CalcHumidity(const uint8_t *data) {
 
 AHT20_Status_t AHT20_Init(AHT20_Handle_t *handle, void *hi2c, uint8_t i2c_addr) {
 	if (handle == NULL) {
-		log_e("AHT20_Init: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
 	if (hi2c == NULL) {
-		log_e("AHT20_Init: Fail! hi2c == NULL");
+		log_e("hi2c == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
 	handle->hi2c = hi2c;
 	if (i2c_addr == 0) {
-		log_i("AHT20_Init: Info Using default addr 0x%02X", AHT20_DEFAULT_I2C_ADDR);
+		log_i("using default i2c addr 0x%02X", AHT20_DEFAULT_I2C_ADDR);
 		i2c_addr = AHT20_DEFAULT_I2C_ADDR;
 	}
 	handle->i2c_addr = i2c_addr;
-	i2c_bus_status_t i2c_ret;
+	uint8_t raw_data[6];
+	
 	delay_ms(50);
+	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_bytes(handle->hi2c, handle->i2c_addr, AHT20_InitCommand, 3);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("AHT20_Init: Fail! @ Write Init Cmd Fail (Code: %d)", i2c_ret);
+		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(50);
-	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, handle->raw_data, 6);
+	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("AHT20_Init: Fail! @ Read Data Fail (Code: %d)", i2c_ret);
+		log_e("i2c read fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	// 检查校准位
-	if (!(handle->raw_data[0] & (1 << 3))) {
-		log_e("AHT20_Init: Fail! @ Not Calibrated (Bit 3 is 0)");
+	if (!(raw_data[0] & (1 << 3))) {
+		log_e("not calibrated (bit 3 is 0)");
 		return AHT20_STATUS_ERR_CAL;
 	}
-	float temperature = AHT20_CalcTemperature(handle->raw_data);
-	float humidity = AHT20_CalcHumidity(handle->raw_data);
+	float temperature = AHT20_CalcTemperature(raw_data);
+	float humidity = AHT20_CalcHumidity(raw_data);
 	if (humidity < 0) {
-		log_w("AHT20_Init: Warning! humidity < 0");
+		log_w("humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("AHT20_Init: Warning! humidity > 100");
+		log_w("humidity > 100");
 		humidity = 100;
 	}
 	handle->temperature = temperature;
 	handle->humidity = humidity;
-	log_i("AHT20_Init: Success! temperature=%f humidity=%f", temperature, humidity);
+	log_d("temperature=%f humidity=%f", temperature, humidity);
 	return AHT20_STATUS_OK;
 }
 
 AHT20_Status_t AHT20_Reset(AHT20_Handle_t *handle) {
 	if (handle == NULL) {
-		log_e("AHT20_Reset: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
 	if (handle->hi2c == NULL) {
-		log_e("AHT20_Reset: Fail! handle->hi2c == NULL");
+		log_e("hi2c == NULL");
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, AHT20_ResetCommand);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("AHT20_Reset: Fail! @ Write Reset Cmd Fail (Code: %d)", i2c_ret);
+		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	return AHT20_STATUS_OK;
@@ -93,41 +95,42 @@ AHT20_Status_t AHT20_Reset(AHT20_Handle_t *handle) {
 
 AHT20_Status_t AHT20_Measure(AHT20_Handle_t *handle) {
 	if (handle == NULL) {
-		log_e("AHT20_Measure: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
 	if (handle->hi2c == NULL) {
-		log_e("AHT20_Measure: Fail! handle->hi2c == NULL");
+		log_e("hi2c == NULL");
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
+	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_bytes(handle->hi2c, handle->i2c_addr, AHT20_MeasureCommand, 3);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("AHT20_Measure: Fail! @ Write Measure Cmd Fail (Code: %d)", i2c_ret);
+		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(80);
-	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, handle->raw_data, 6);
+	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("AHT20_Measure: Fail! @ Read Data Fail (Code: %d)", i2c_ret);
+		log_e("i2c read fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	// 检查是否忙
-	if (handle->raw_data[0] & (1 << 7)) {
-		log_e("AHT20_Measure: Fail! @ Dev Busy (Bit 7 is 1)");
+	if (raw_data[0] & (1 << 7)) {
+		log_e("dev busy (bit 7 is 1)");
 		return AHT20_STATUS_ERR_BUSY;
 	}
-	float temperature = AHT20_CalcTemperature(handle->raw_data);
-	float humidity = AHT20_CalcHumidity(handle->raw_data);
+	float temperature = AHT20_CalcTemperature(raw_data);
+	float humidity = AHT20_CalcHumidity(raw_data);
 	if (humidity < 0) {
-		log_w("AHT20_Measure: Warning! humidity < 0");
+		log_w("humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("AHT20_Measure: Warning! humidity > 100");
+		log_w("humidity > 100");
 		humidity = 100;
 	}
 	handle->temperature = temperature;
 	handle->humidity = humidity;
-	log_i("AHT20_Measure: Success! temperature=%f, humidity=%f", temperature, humidity);
+	log_i("temperature=%f, humidity=%f", temperature, humidity);
 	return AHT20_STATUS_OK;
 }

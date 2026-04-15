@@ -3,9 +3,12 @@
 
 int delay_init(void) {
 	// 启用 DWT 计数器
+	// 使能DWT外设，由内核调试寄存器DEM_CR的位24控制，写1使能。
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	// 使能CYCCNT寄存器之前，先清0。
+	DWT->CYCCNT = (uint32_t)0u;
+	// 使能CYCCNT寄存器，由DWT_CTRL的位0控制，写1使能。
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-	DWT->CYCCNT = 0;
 	return 0;
 }
 

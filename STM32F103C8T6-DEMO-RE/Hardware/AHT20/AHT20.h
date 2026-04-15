@@ -22,11 +22,10 @@ typedef enum {
 // 定义 AHT20 设备句柄结构体
 typedef struct AHT20_Handle_s AHT20_Handle_t;
 struct AHT20_Handle_s {
-	void *hi2c;
-	uint8_t i2c_addr;
-	uint8_t raw_data[6];
 	float temperature;
 	float humidity;
+	void *hi2c;
+	uint8_t i2c_addr;
 };
 
 // 设备初始化

@@ -51,41 +51,40 @@ static inline float SHT40_CalcHumidity(const uint8_t *data) {
 
 SHT40_Status_t SHT40_Init(SHT40_Handle_t *handle, void *hi2c, uint8_t i2c_addr, SHT40_Repeatability_t rep) {
 	if (handle == NULL) {
-		log_e("SHT40_Init: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	if (hi2c == NULL) {
-		log_e("SHT40_Init: Fail! hi2c == NULL");
+		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	handle->hi2c = hi2c;
 	if (i2c_addr == 0) {
-		log_i("SHT40_Init: Info Using default addr 0x%02X", SHT40_DEFAULT_I2C_ADDR);
+		log_i("using default i2c addr 0x%02X", SHT40_DEFAULT_I2C_ADDR);
 		i2c_addr = SHT40_DEFAULT_I2C_ADDR;
 	}
 	handle->i2c_addr = i2c_addr;
 	if (rep < SHT40_REP_DEFAULT || rep > SHT40_REP_LOW) {
-		log_w("SHT40_Init: Warning! rep invalid! use SHT40_REP_DEFAULT");
+		log_w("rep invalid! use default rep");
 		rep = SHT40_REP_DEFAULT;
 	}
 	handle->repeatability = rep;
-	log_i("SHT40_Init: Success!");
 	return SHT40_STATUS_OK;
 }
 
 SHT40_Status_t SHT40_Reset(SHT40_Handle_t *handle) {
 	if (handle == NULL) {
-		log_e("SHT40_Reset: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	if (handle->hi2c == NULL) {
-		log_e("SHT40_Reset: Fail! handle->hi2c == NULL");
+		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_ResetCommand);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("SHT40_Reset: Fail! @ Write Reset Cmd Fail (Code: %d)", i2c_ret);
+		log_e("i2c write fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	return SHT40_STATUS_OK;
@@ -93,99 +92,98 @@ SHT40_Status_t SHT40_Reset(SHT40_Handle_t *handle) {
 
 SHT40_Status_t SHT40_Measure(SHT40_Handle_t *handle) {
 	if (handle == NULL) {
-		log_e("SHT40_Measure: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	if (handle->hi2c == NULL) {
-		log_e("SHT40_Measure: Fail! handle->hi2c == NULL");
+		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_MeasureCommand[handle->repeatability]);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("SHT40_Measure: Fail! @ Write Measure Cmd Fail (Code: %d)", i2c_ret);
+		log_e("i2c write fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(SHT40_MeasureDelay[handle->repeatability]);
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, handle->raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("SHT40_Measure: Fail! @ Read Data Fail (Code: %d)", i2c_ret);
+		log_e("i2c read fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	if (!SHT40_CheckCRC(handle->raw_data)) {
-		log_e("SHT40_Measure: Fail! @ Check CRC Fail");
+		log_e("check CRC fail");
 		return SHT40_STATUS_ERR_CRC;
 	}
 	float temperature = SHT40_CalcTemperature(handle->raw_data);
 	float humidity = SHT40_CalcHumidity(handle->raw_data);
 	if (humidity < 0) {
-		log_w("SHT40_Measure: Warning! humidity < 0");
+		log_w("humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("SHT40_Measure: Warning! humidity > 100");
+		log_w("humidity > 100");
 		humidity = 100;
 	}
 	handle->temperature = temperature;
 	handle->humidity = humidity;
-	log_i("SHT40_Measure: Success! temperature=%f, humidity=%f", temperature, humidity);
+	log_d("temperature=%f, humidity=%f", temperature, humidity);
 	return SHT40_STATUS_OK;
 }
 
 SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *handle, SHT40_Heater_t heater) {
 	return SHT40_STATUS_ERR_BUSY;
 	if (handle == NULL) {
-		log_e("SHT40_HeaterMeasure: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	if (handle->hi2c == NULL) {
-		log_e("SHT40_HeaterMeasure: Fail! handle->hi2c == NULL");
+		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	if (heater < 0 || heater > SHT40_HEATER_20MW100MS) {
-		log_e("SHT40_HeaterMeasure: Fail! heater INVALID");
+		log_e("heater INVALID");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_HeaterMeasureCommand[heater]);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("SHT40_HeaterMeasure: Fail! @ Write Heater Measure Cmd Fail (Code: %d)", i2c_ret);
+		log_e("i2c write fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(SHT40_HeaterMeasureDelay[(heater % 2)]);
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, handle->raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
-		log_e("SHT40_HeaterMeasure: Fail! @ Read Data Fail (Code: %d)", i2c_ret);
+		log_e("i2c read fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	if (!SHT40_CheckCRC(handle->raw_data)) {
-		log_e("SHT40_HeaterMeasure: Fail! @ Check CRC Fail");
+		log_e("check CRC fail");
 		return SHT40_STATUS_ERR_CRC;
 	}
 	float temperature = SHT40_CalcTemperature(handle->raw_data);
 	float humidity = SHT40_CalcHumidity(handle->raw_data);
 	if (humidity < 0) {
-		log_w("SHT40_HeaterMeasure: Warning! humidity < 0");
+		log_w("humidity < 0");
 		humidity = 0;
 	} else if (humidity > 100) {
-		log_w("SHT40_HeaterMeasure: Warning! humidity > 100");
+		log_w("humidity > 100");
 		humidity = 100;
 	}
 	handle->temperature = temperature;
 	handle->humidity = humidity;
-	log_i("SHT40_HeaterMeasure: Success! temperature=%f, humidity=%f", temperature, humidity);
+	log_i("temperature=%f, humidity=%f", temperature, humidity);
 	return SHT40_STATUS_OK;
 }
 
 SHT40_Status_t SHT40_SetRepeatability(SHT40_Handle_t *handle, SHT40_Repeatability_t rep) {
 	if (handle == NULL) {
-		log_e("SHT40_SetRepeatability: Fail! handle == NULL");
+		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	if (rep < SHT40_REP_DEFAULT || rep > SHT40_REP_LOW) {
-		log_w("SHT40_SetRepeatability: Warning! rep invalid! use SHT40_REP_DEFAULT");
+		log_w("rep invalid! use default rep");
 		rep = SHT40_REP_DEFAULT;
 	}
 	handle->repeatability = rep;
-	log_i("SHT40_SetRepeatability: Success! rep=%d", rep);
 	return SHT40_STATUS_OK;
 }
