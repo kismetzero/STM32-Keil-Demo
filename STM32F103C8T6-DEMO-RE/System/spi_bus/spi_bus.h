@@ -32,8 +32,19 @@ typedef struct spi_cs_ops_s spi_cs_ops_t;
 typedef struct spi_dev_handle_s spi_dev_handle_t;
 
 struct spi_dev_handle_s {
-	spi_bus_handle_t *bus;		// 关联的总线
 	spi_cs_handle_t *cs;		// 关联的片选控制器
+	spi_bus_handle_t *bus;		// 关联的总线
+};
+
+struct spi_cs_handle_s {
+	void *user_data; 
+	spi_cs_ops_t *ops;
+};
+
+struct spi_cs_ops_s {
+	spi_bus_status_t (*init)(spi_cs_handle_t *handle);
+	spi_bus_status_t (*high)(spi_cs_handle_t *handle);
+	spi_bus_status_t (*low)(spi_cs_handle_t *handle);
 };
 
 struct spi_bus_handle_s {
@@ -54,17 +65,6 @@ struct spi_bus_ops_s {
 	// 动态配置 (SPI 特性：不同设备可能需要不同速率和模式)
 	spi_bus_status_t (*set_speed)(spi_bus_handle_t *handle, uint32_t speed_hz);
 	spi_bus_status_t (*set_mode)(spi_bus_handle_t *handle, spi_bus_mode_t mode);
-};
-
-struct spi_cs_handle_s {
-	void *user_data; 
-	spi_cs_ops_t *ops;
-};
-
-struct spi_cs_ops_s {
-	spi_bus_status_t (*init)(spi_cs_handle_t *handle);
-	spi_bus_status_t (*high)(spi_cs_handle_t *handle);
-	spi_bus_status_t (*low)(spi_cs_handle_t *handle);
 };
 
 static inline spi_bus_status_t spi_cs_init(spi_dev_handle_t *handle) {

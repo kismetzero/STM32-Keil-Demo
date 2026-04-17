@@ -7,6 +7,95 @@
 #define SPI_BUS_FAST 1
 
 //=====================================================================================================
+// SPI CS OOP
+
+static spi_bus_status_t spi_bus_stm32_std_cs_init(spi_cs_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
+	
+	RCC_APB2PeriphClockCmd(cfg->cs_gpio_clk, ENABLE);
+	
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	// CS 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->cs_gpio_pin;
+	GPIO_Init(cfg->cs_gpio_port, &GPIO_InitStructure);
+	
+	// 默认拉高 (释放设备)
+	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
+	log_i("success! cs_pin=%d", cfg->cs_gpio_pin);
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_cs_high(spi_cs_handle_t *handle) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
+	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_cs_low(spi_cs_handle_t *handle) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
+	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_RESET);
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_cs_ops_t spi_bus_stm32_std_cs_ops = {
+	.init = spi_bus_stm32_std_cs_init,
+	.high = spi_bus_stm32_std_cs_high,
+	.low = spi_bus_stm32_std_cs_low,
+};
+
+spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi_bus_stm32_std_cs_config_t *cfg) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (cfg == NULL) {
+		log_e("cfg == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	handle->user_data = (void*)cfg;
+	handle->ops = &spi_bus_stm32_std_cs_ops;
+	spi_bus_status_t ret = handle->ops->init(handle);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
+	}
+	return ret;
+}
+
+//=====================================================================================================
+
+
+//=====================================================================================================
 // SPI SW BUS OOP
 
 __STATIC_INLINE void spi_bus_stm32_std_sw_delay(void) {
@@ -48,7 +137,6 @@ __STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_switch(spi_bus_stm32_std_s
 		}
 		spi_bus_stm32_std_sw_delay();
 	}
-	log_d("tx=0x%02X, rx=0x%02X", tx, res);
 	if (rx != NULL) { *rx = res; }
 	return SPI_BUS_STATUS_OK;
 }
@@ -63,9 +151,7 @@ static spi_bus_status_t spi_bus_stm32_std_sw_init(spi_bus_handle_t *handle) {
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
-	
 	RCC_APB2PeriphClockCmd(cfg->sck_gpio_clk | cfg->mosi_gpio_clk | cfg->miso_gpio_clk, ENABLE);
-	
 	GPIO_InitTypeDef GPIO_InitStructure;
 	//GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
@@ -80,18 +166,16 @@ static spi_bus_status_t spi_bus_stm32_std_sw_init(spi_bus_handle_t *handle) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Pin = cfg->miso_gpio_pin;
 	GPIO_Init(cfg->miso_gpio_port, &GPIO_InitStructure);
-	
 	// 计算并打印模式
 	uint8_t mode = cfg->mode;
 	if (mode > 0x03) {
-		mode &= 0x03;
-		log_w("spi_bus_stm32_std_sw_init: Warning! Invalid mode %d detected! Auto-correcting to %d.", cfg->mode, mode);
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
 		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
-	log_i("Success! SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
-	
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	// 初始化状态：
 	spi_bus_stm32_std_sw_sck_write(cfg, cpol);
 	spi_bus_stm32_std_sw_mosi_write(cfg, 0);
@@ -113,34 +197,12 @@ static spi_bus_status_t spi_bus_stm32_std_sw_switch_byte(spi_bus_handle_t *handl
 	return spi_bus_stm32_std_sw_switch(cfg, tx, rx);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_sw_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
-	return spi_bus_stm32_std_sw_switch(cfg, 0xFF, byte);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_sw_switch_byte(handle, 0xFF, byte);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_sw_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
-	return spi_bus_stm32_std_sw_switch(cfg, byte, NULL);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_sw_switch_byte(handle, byte, NULL);
 }
 
 static spi_bus_status_t spi_bus_stm32_std_sw_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
@@ -155,7 +217,7 @@ static spi_bus_status_t spi_bus_stm32_std_sw_switch_bytes(spi_bus_handle_t *hand
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (tx == NULL && rx == NULL) {
-		log_e("Both tx and rx are NULL");
+		log_e("both tx and rx are NULL");
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (len == 0) {
@@ -166,21 +228,17 @@ static spi_bus_status_t spi_bus_stm32_std_sw_switch_bytes(spi_bus_handle_t *hand
 	for (uint16_t i = 0; i < len; i++) {
 		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
 		uint8_t rx_byte;
-		spi_bus_status_t ret = spi_bus_stm32_std_sw_switch(cfg, tx_byte, &rx_byte);
-		if (ret != SPI_BUS_STATUS_OK) {
-			log_e("spi_bus_stm32_std_sw_switch_bytes: Fail! @ index %d", i);
-			return ret;
-		}
+		spi_bus_stm32_std_sw_switch(cfg, tx_byte, &rx_byte);
 		if (rx != NULL) { rx[i] = rx_byte; }
 	}
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_status_t spi_bus_stm32_std_sw_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_sw_switch_bytes(handle, NULL, data, len);	
 }
 
-static spi_bus_status_t spi_bus_stm32_std_sw_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_sw_switch_bytes(handle, data, NULL, len);
 }
 
@@ -199,14 +257,14 @@ static spi_bus_status_t spi_bus_stm32_std_sw_set_mode(spi_bus_handle_t *handle, 
 	// 计算并打印模式
 	cfg->mode = mode;
 	if (mode > 0x03) {
-		cfg->mode = mode & 0x03;
-		log_w("spi_bus_stm32_std_sw_set_mode: Warning! Invalid mode %d detected! Auto-correcting to %d.", mode, cfg->mode);
-		mode = cfg->mode;
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	spi_bus_stm32_std_sw_sck_write(cfg, cpol);
-	log_i("Success! SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
 	return SPI_BUS_STATUS_OK;
 }
 
@@ -247,101 +305,8 @@ spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, sp
 	handle->ops = &spi_bus_stm32_std_sw_ops;
 	
 	spi_bus_status_t ret = handle->ops->init(handle);
-	if (ret == SPI_BUS_STATUS_OK) {
-		log_i("Success! Init Handle");
-	} else {
-		log_e("Fail! Init Handle Fail (Code: %d)", ret);
-	}
-	return ret;
-}
-
-//=====================================================================================================
-
-
-//=====================================================================================================
-// SPI CS OOP
-
-static spi_bus_status_t spi_bus_stm32_std_cs_init(spi_cs_handle_t *handle) {
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
-	
-	RCC_APB2PeriphClockCmd(cfg->cs_gpio_clk, ENABLE);
-	
-	GPIO_InitTypeDef GPIO_InitStructure;
-	//GPIO_StructInit(&GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	// CS 引脚初始化
-	GPIO_InitStructure.GPIO_Pin = cfg->cs_gpio_pin;
-	GPIO_Init(cfg->cs_gpio_port, &GPIO_InitStructure);
-	
-	// 默认拉高 (释放设备)
-	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
-	log_i("Success! cs_pin=%d", cfg->cs_gpio_pin);
-	return SPI_BUS_STATUS_OK;
-}
-
-static spi_bus_status_t spi_bus_stm32_std_cs_high(spi_cs_handle_t *handle) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
-	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
-	return SPI_BUS_STATUS_OK;
-}
-
-static spi_bus_status_t spi_bus_stm32_std_cs_low(spi_cs_handle_t *handle) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
-	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_RESET);
-	return SPI_BUS_STATUS_OK;
-}
-
-static spi_cs_ops_t __cs_ops = {
-	.init = spi_bus_stm32_std_cs_init,
-	.high = spi_bus_stm32_std_cs_high,
-	.low = spi_bus_stm32_std_cs_low,
-};
-
-spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi_bus_stm32_std_cs_config_t *cfg) {
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	if (cfg == NULL) {
-		log_e("cfg == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	handle->user_data = (void*)cfg;
-	handle->ops = &__cs_ops;
-	spi_bus_status_t ret = handle->ops->init(handle);
-	if (ret == SPI_BUS_STATUS_OK) {
-		log_i("Success! Init Handle");
-	} else {
-		log_e("Fail! Init Handle Fail (Code: %d)", ret);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
 	}
 	return ret;
 }
@@ -381,17 +346,16 @@ static spi_bus_status_t spi_bus_stm32_std_hw_init(spi_bus_handle_t *handle) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Pin = cfg->miso_gpio_pin;
 	GPIO_Init(cfg->spi_gpio_port, &GPIO_InitStructure);
-	
 	// 计算并打印模式
 	uint8_t mode = cfg->mode;
 	if (mode > 0x03) {
-		mode &= 0x03;
-		log_w("spi_bus_stm32_std_hw_init: Warning! Invalid mode %d detected! Auto-correcting to %d.", cfg->mode, mode);
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
 		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
-	log_i("SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	
 	SPI_InitTypeDef SPI_InitStructure;
 	//SPI_StructInit(&SPI_InitStructure);
@@ -417,7 +381,6 @@ __STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_switch(spi_bus_stm32_std_h
 	SPI_I2S_SendData(cfg->spi_periph, tx);
 	while (SPI_I2S_GetFlagStatus(cfg->spi_periph, SPI_I2S_FLAG_RXNE) != SET);
 	res = SPI_I2S_ReceiveData(cfg->spi_periph);
-	log_d("tx=0x%02X, rx=0x%02X", tx, res);
 	if (rx != NULL) { *rx = res; }
 	return SPI_BUS_STATUS_OK;
 }
@@ -437,34 +400,12 @@ static spi_bus_status_t spi_bus_stm32_std_hw_switch_byte(spi_bus_handle_t *handl
 	return spi_bus_stm32_std_hw_switch(cfg, tx, rx);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_hw_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
-	return spi_bus_stm32_std_hw_switch(cfg, 0xFF, byte);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_hw_switch_byte(handle, 0xFF, byte);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_hw_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
-	return spi_bus_stm32_std_hw_switch(cfg, byte, NULL);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_hw_switch_byte(handle, byte, NULL);
 }
 
 static spi_bus_status_t spi_bus_stm32_std_hw_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
@@ -479,7 +420,7 @@ static spi_bus_status_t spi_bus_stm32_std_hw_switch_bytes(spi_bus_handle_t *hand
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (tx == NULL && rx == NULL) {
-		log_e("Both tx and rx are NULL");
+		log_e("both tx and rx are NULL");
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (len == 0) {
@@ -490,21 +431,17 @@ static spi_bus_status_t spi_bus_stm32_std_hw_switch_bytes(spi_bus_handle_t *hand
 	for (uint16_t i = 0; i < len; i++) {
 		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
 		uint8_t rx_byte;
-		spi_bus_status_t ret = spi_bus_stm32_std_hw_switch(cfg, tx_byte, &rx_byte);
-		if (ret != SPI_BUS_STATUS_OK) {
-			log_e("index %d", i);
-			return ret;
-		}
+		spi_bus_stm32_std_hw_switch(cfg, tx_byte, &rx_byte);
 		if (rx != NULL) { rx[i] = rx_byte; }
 	}
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_status_t spi_bus_stm32_std_hw_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_hw_switch_bytes(handle, NULL, data, len);	
 }
 
-static spi_bus_status_t spi_bus_stm32_std_hw_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_hw_switch_bytes(handle, data, NULL, len);
 }
 
@@ -525,13 +462,13 @@ static spi_bus_status_t spi_bus_stm32_std_hw_set_mode(spi_bus_handle_t *handle, 
 	// 计算并打印模式
 	cfg->mode = mode;
 	if (mode > 0x03) {
-		cfg->mode = mode & 0x03;
-		log_w("Warning! Invalid mode %d detected! Auto-correcting to %d.", mode, cfg->mode);
-		mode = cfg->mode;
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
-	log_i("spi_bus_stm32_std_hw_set_mode: Success! SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	return SPI_BUS_STATUS_OK;
 }
 
@@ -582,10 +519,8 @@ spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, sp
 //	}
 	
 	spi_bus_status_t ret = handle->ops->init(handle);
-	if (ret == SPI_BUS_STATUS_OK) {
-		log_i("Success! Init Handle");
-	} else {
-		log_e("Fail! Init Handle Fail (Code: %d)", ret);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
 	}
 	return ret;
 }
@@ -634,7 +569,6 @@ __STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_switch(uint8_t mode, uint8
 		}
 		spi_bus_stm32_std_sw_delay();
 	}
-	log_d("tx=0x%02X, rx=0x%02X", tx, res);
 	if (rx != NULL) { *rx = res; }
 	return SPI_BUS_STATUS_OK;
 }
@@ -666,18 +600,16 @@ static spi_bus_status_t spi_bus_stm32_std_SW_init(spi_bus_handle_t *handle) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_SW_MISO_GPIO_PIN;
 	GPIO_Init(SPI_BUS_STM32_STD_SW_MISO_GPIO_PORT, &GPIO_InitStructure);
-	
 	// 计算并打印模式
 	uint8_t mode = cfg->mode;
 	if (mode > 0x03) {
-		mode &= 0x03;
-		log_w("Warning! Invalid mode %d detected! Auto-correcting to %d.", cfg->mode, mode);
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
 		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
-	log_i("SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
-	
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	// 初始化状态：
 	SPI_BUS_STM32_STD_SW_SCK_WRITE(cpol);
 	SPI_BUS_STM32_STD_SW_MOSI_WRITE(0);
@@ -699,34 +631,12 @@ static spi_bus_status_t spi_bus_stm32_std_SW_switch_byte(spi_bus_handle_t *handl
 	return spi_bus_stm32_std_SW_switch(cfg->mode, tx, rx);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_SW_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_SW_config_t *cfg = (spi_bus_stm32_std_SW_config_t *)handle->user_data;
-	return spi_bus_stm32_std_SW_switch(cfg->mode, 0xFF, byte);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_SW_switch_byte(handle, 0xFF, byte);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_SW_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	if (handle->user_data == NULL) {
-		log_e("user_data == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	spi_bus_stm32_std_SW_config_t *cfg = (spi_bus_stm32_std_SW_config_t *)handle->user_data;
-	return spi_bus_stm32_std_SW_switch(cfg->mode, byte, NULL);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_SW_switch_byte(handle, byte, NULL);
 }
 
 static spi_bus_status_t spi_bus_stm32_std_SW_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
@@ -741,7 +651,7 @@ static spi_bus_status_t spi_bus_stm32_std_SW_switch_bytes(spi_bus_handle_t *hand
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (tx == NULL && rx == NULL) {
-		log_e("Both tx and rx are NULL");
+		log_e("both tx and rx are NULL");
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (len == 0) {
@@ -752,21 +662,17 @@ static spi_bus_status_t spi_bus_stm32_std_SW_switch_bytes(spi_bus_handle_t *hand
 	for (uint16_t i = 0; i < len; i++) {
 		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
 		uint8_t rx_byte;
-		spi_bus_status_t ret = spi_bus_stm32_std_SW_switch(cfg->mode, tx_byte, &rx_byte);
-		if (ret != SPI_BUS_STATUS_OK) {
-			log_e("index %d", i);
-			return ret;
-		}
+		spi_bus_stm32_std_SW_switch(cfg->mode, tx_byte, &rx_byte);
 		if (rx != NULL) { rx[i] = rx_byte; }
 	}
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_status_t spi_bus_stm32_std_SW_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_SW_switch_bytes(handle, NULL, data, len);	
 }
 
-static spi_bus_status_t spi_bus_stm32_std_SW_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_SW_switch_bytes(handle, data, NULL, len);
 }
 
@@ -785,14 +691,14 @@ static spi_bus_status_t spi_bus_stm32_std_SW_set_mode(spi_bus_handle_t *handle, 
 	// 计算并打印模式
 	cfg->mode = mode;
 	if (mode > 0x03) {
-		cfg->mode = mode & 0x03;
-		log_w("Invalid mode %d detected! Auto-correcting to %d.", mode, cfg->mode);
-		mode = cfg->mode;
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	SPI_BUS_STM32_STD_SW_SCK_WRITE(cpol);
-	log_i("SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
 	return SPI_BUS_STATUS_OK;
 }
 
@@ -819,10 +725,8 @@ spi_bus_status_t spi_bus_stm32_std_SW_create_handle(spi_bus_handle_t *handle, sp
 	handle->user_data = cfg;
 	handle->ops = &spi_bus_stm32_std_SW_ops;
 	spi_bus_status_t ret = handle->ops->init(handle);
-	if (ret == SPI_BUS_STATUS_OK) {
-		log_i("Success! Init Handle");
-	} else {
-		log_e("Init Handle Fail (Code: %d)", ret);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
 	}
 	return ret;
 }
@@ -871,17 +775,16 @@ static spi_bus_status_t spi_bus_stm32_std_HW_init(spi_bus_handle_t *handle) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_HW_MISO_GPIO_PIN;
 	GPIO_Init(SPI_BUS_STM32_STD_HW_GPIO_PORT, &GPIO_InitStructure);
-	
 	// 计算并打印模式
 	uint8_t mode = cfg->mode;
 	if (mode > 0x03) {
-		mode &= 0x03;
-		log_w("Invalid mode %d detected! Auto-correcting to %d.", cfg->mode, mode);
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
 		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
-	log_i("SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	
 	SPI_InitTypeDef SPI_InitStructure;
 	//SPI_StructInit(&SPI_InitStructure);
@@ -907,7 +810,6 @@ __STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_switch(uint8_t tx, uint8_t
 	SPI_I2S_SendData(SPI_BUS_STM32_STD_HW_SPI_PERIPH, tx);
 	while (SPI_I2S_GetFlagStatus(SPI_BUS_STM32_STD_HW_SPI_PERIPH, SPI_I2S_FLAG_RXNE) != SET);
 	res = SPI_I2S_ReceiveData(SPI_BUS_STM32_STD_HW_SPI_PERIPH);
-	log_d("tx=0x%02X, rx=0x%02X", tx, res);
 	if (rx != NULL) { *rx = res; }
 	return SPI_BUS_STATUS_OK;
 }
@@ -922,24 +824,12 @@ static spi_bus_status_t spi_bus_stm32_std_HW_switch_byte(spi_bus_handle_t *handl
 	return spi_bus_stm32_std_HW_switch(tx, rx);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_HW_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	return spi_bus_stm32_std_HW_switch(0xFF, byte);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_HW_switch_byte(handle, 0xFF, byte);
 }
 
-static spi_bus_status_t spi_bus_stm32_std_HW_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
-	#if SPI_BUS_FAST == 0
-	if (handle == NULL) {
-		log_e("handle == NULL");
-		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
-	}
-	#endif	/* SPI_BUS_FAST */
-	return spi_bus_stm32_std_HW_switch(byte, NULL);
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_HW_switch_byte(handle, byte, NULL);
 }
 
 static spi_bus_status_t spi_bus_stm32_std_HW_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
@@ -954,7 +844,7 @@ static spi_bus_status_t spi_bus_stm32_std_HW_switch_bytes(spi_bus_handle_t *hand
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (tx == NULL && rx == NULL) {
-		log_e("Both tx and rx are NULL");
+		log_e("both tx and rx are NULL");
 		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	if (len == 0) {
@@ -965,21 +855,17 @@ static spi_bus_status_t spi_bus_stm32_std_HW_switch_bytes(spi_bus_handle_t *hand
 	for (uint16_t i = 0; i < len; i++) {
 		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
 		uint8_t rx_byte;
-		spi_bus_status_t ret = spi_bus_stm32_std_HW_switch(tx_byte, &rx_byte);
-		if (ret != SPI_BUS_STATUS_OK) {
-			log_e("index %d", i);
-			return ret;
-		}
+		spi_bus_stm32_std_HW_switch(tx_byte, &rx_byte);
 		if (rx != NULL) { rx[i] = rx_byte; }
 	}
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_status_t spi_bus_stm32_std_HW_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_HW_switch_bytes(handle, NULL, data, len);	
 }
 
-static spi_bus_status_t spi_bus_stm32_std_HW_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
 	return spi_bus_stm32_std_HW_switch_bytes(handle, data, NULL, len);
 }
 
@@ -1000,13 +886,13 @@ static spi_bus_status_t spi_bus_stm32_std_HW_set_mode(spi_bus_handle_t *handle, 
 	// 计算并打印模式
 	cfg->mode = mode;
 	if (mode > 0x03) {
-		cfg->mode = mode & 0x03;
-		log_w("Invalid mode %d detected! Auto-correcting to %d.", mode, cfg->mode);
-		mode = cfg->mode;
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
 	}
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
-	log_i("SPI Mode=%d (CPOL=%d, CPHA=%d)", mode, cpol, cpha);
+	log_d("init success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
 	return SPI_BUS_STATUS_OK;
 }
 
@@ -1033,10 +919,8 @@ spi_bus_status_t spi_bus_stm32_std_HW_create_handle(spi_bus_handle_t *handle, sp
 	handle->user_data = cfg;
 	handle->ops = &spi_bus_stm32_std_HW_ops;
 	spi_bus_status_t ret = handle->ops->init(handle);
-	if (ret == SPI_BUS_STATUS_OK) {
-		log_i("Success! Init Handle");
-	} else {
-		log_e("Fail! Init Handle Fail (Code: %d)", ret);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
 	}
 	return ret;
 }
