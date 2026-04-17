@@ -16,7 +16,8 @@ void vTask1(void *pvParameters)
     {
 		system_sync_time();
         log_a("task1: %s", system_time);
-        vTaskDelay(500 / portTICK_PERIOD_MS); // 延时500ms
+		W25QX_ReadID(&w25qx_handle);
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // 延时500ms
     }
 }
 
@@ -26,5 +27,6 @@ int main(void) {
 	xTaskCreate(vTask1, "Task1", 128, NULL, 1, &xTaskHandle1);
 	vTaskStartScheduler();
 	while(1) {
+		
 	}
 }

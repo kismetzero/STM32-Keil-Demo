@@ -40,12 +40,11 @@ typedef enum {
 // 定义 SHT40 设备句柄结构体
 typedef struct SHT40_Handle_s SHT40_Handle_t;
 struct SHT40_Handle_s {
-	void *hi2c;
-	uint8_t i2c_addr;
-	uint8_t raw_data[6];
 	float temperature;
 	float humidity;
 	SHT40_Repeatability_t repeatability;
+	void *hi2c;
+	uint8_t i2c_addr;
 };
 
 // 设备初始化

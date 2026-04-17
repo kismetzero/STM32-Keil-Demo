@@ -99,6 +99,7 @@ SHT40_Status_t SHT40_Measure(SHT40_Handle_t *handle) {
 		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
+	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_MeasureCommand[handle->repeatability]);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
@@ -106,17 +107,17 @@ SHT40_Status_t SHT40_Measure(SHT40_Handle_t *handle) {
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(SHT40_MeasureDelay[handle->repeatability]);
-	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, handle->raw_data, 6);
+	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
-	if (!SHT40_CheckCRC(handle->raw_data)) {
-		log_e("check CRC fail");
+	if (!SHT40_CheckCRC(raw_data)) {
+		log_e("check crc fail");
 		return SHT40_STATUS_ERR_CRC;
 	}
-	float temperature = SHT40_CalcTemperature(handle->raw_data);
-	float humidity = SHT40_CalcHumidity(handle->raw_data);
+	float temperature = SHT40_CalcTemperature(raw_data);
+	float humidity = SHT40_CalcHumidity(raw_data);
 	if (humidity < 0) {
 		log_w("humidity < 0");
 		humidity = 0;
@@ -140,10 +141,11 @@ SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *handle, SHT40_Heater_t heater
 		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
-	if (heater < 0 || heater > SHT40_HEATER_20MW100MS) {
-		log_e("heater INVALID");
+	if (heater < SHT40_HEATER_200MW1S || heater > SHT40_HEATER_20MW100MS) {
+		log_e("heater invalid");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
+	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_HeaterMeasureCommand[heater]);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
@@ -151,17 +153,17 @@ SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *handle, SHT40_Heater_t heater
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(SHT40_HeaterMeasureDelay[(heater % 2)]);
-	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, handle->raw_data, 6);
+	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
-	if (!SHT40_CheckCRC(handle->raw_data)) {
-		log_e("check CRC fail");
+	if (!SHT40_CheckCRC(raw_data)) {
+		log_e("check crc fail");
 		return SHT40_STATUS_ERR_CRC;
 	}
-	float temperature = SHT40_CalcTemperature(handle->raw_data);
-	float humidity = SHT40_CalcHumidity(handle->raw_data);
+	float temperature = SHT40_CalcTemperature(raw_data);
+	float humidity = SHT40_CalcHumidity(raw_data);
 	if (humidity < 0) {
 		log_w("humidity < 0");
 		humidity = 0;
