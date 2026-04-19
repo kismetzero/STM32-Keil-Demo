@@ -334,7 +334,7 @@ static spi_bus_status_t spi_bus_stm32_std_hw_init(spi_bus_handle_t *handle) {
 	} else {
 		RCC_APB1PeriphClockCmd(cfg->spi_clk, ENABLE);
 	}
-	
+	// GPIO 引脚初始化
 	GPIO_InitTypeDef GPIO_InitStructure;
 	//GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -356,7 +356,7 @@ static spi_bus_status_t spi_bus_stm32_std_hw_init(spi_bus_handle_t *handle) {
 	uint8_t cpol = (mode >> 1) & 0x01;
 	uint8_t cpha = mode & 0x01;
 	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
-	
+	// SPI 初始化
 	SPI_InitTypeDef SPI_InitStructure;
 	//SPI_StructInit(&SPI_InitStructure);
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;							// 主从模式
@@ -369,9 +369,8 @@ static spi_bus_status_t spi_bus_stm32_std_hw_init(spi_bus_handle_t *handle) {
 	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
 	SPI_InitStructure.SPI_CRCPolynomial = 0x0007;							// CRC校验参数，手册默认0x0007
 	SPI_Init(cfg->spi_periph, &SPI_InitStructure);
-	
+	// SPI 使能
 	SPI_Cmd(cfg->spi_periph, ENABLE);
-	
 	return SPI_BUS_STATUS_OK;
 }
 
@@ -499,12 +498,12 @@ spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, sp
 		ELOG_ASSERT(IS_RCC_APB1_PERIPH(cfg->spi_clk));
 	}
 	
-	ELOG_ASSERT(IS_SPI_ALL_PERIPH(cfg->spi_periph));
-	ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->spi_gpio_clk));
-	ELOG_ASSERT(IS_GPIO_PIN(cfg->sck_gpio_pin));
-	ELOG_ASSERT(IS_GPIO_PIN(cfg->mosi_gpio_pin));
-	ELOG_ASSERT(IS_GPIO_PIN(cfg->miso_gpio_pin));
-	ELOG_ASSERT(IS_GPIO_ALL_PERIPH(cfg->spi_gpio_port));
+	assert(IS_SPI_ALL_PERIPH(cfg->spi_periph));
+	assert(IS_RCC_APB2_PERIPH(cfg->spi_gpio_clk));
+	assert(IS_GPIO_PIN(cfg->sck_gpio_pin));
+	assert(IS_GPIO_PIN(cfg->mosi_gpio_pin));
+	assert(IS_GPIO_PIN(cfg->miso_gpio_pin));
+	assert(IS_GPIO_ALL_PERIPH(cfg->spi_gpio_port));
 	
 	handle->user_data = cfg;
 	handle->ops = &spi_bus_stm32_std_hw_ops;

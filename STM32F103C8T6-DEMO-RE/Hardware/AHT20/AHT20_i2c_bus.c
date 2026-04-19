@@ -131,6 +131,6 @@ AHT20_Status_t AHT20_Measure(AHT20_Handle_t *handle) {
 	}
 	handle->temperature = temperature;
 	handle->humidity = humidity;
-	log_i("temperature=%f, humidity=%f", temperature, humidity);
+	log_d("temperature=%f, humidity=%f", temperature, humidity);
 	return AHT20_STATUS_OK;
 }

@@ -37,12 +37,10 @@
 # Objects/          # 自定义目标文件目录（如有）
 # Listings/         # 自定义列表文件目录（如有）
 # DebugConfig/      # Debug配置文件目录（my）
-# RTE/              # RTE驱动文件目录（my）
 MDK-ARM/
 Objects/
 Listings/
 DebugConfig/
-RTE/
 
 # --- 调试与临时文件 ---
 # *.ini             # 调试脚本（可能包含本地硬件配置）

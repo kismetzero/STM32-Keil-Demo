@@ -43,7 +43,7 @@ W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *handle) {
 		log_e("hspi == NULL");
 		return W25QX_STATUS_ERR_SPI_ERR;
 	}
-	uint8_t raw_data[3] = {0};
+	uint8_t raw_data[3];
 	spi_bus_status_t ret;
 	ret = spi_cs_low(handle->hspi);
 	if (ret != SPI_BUS_STATUS_OK) {

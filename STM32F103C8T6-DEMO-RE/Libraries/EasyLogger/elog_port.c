@@ -28,13 +28,11 @@
  
 #include <elog.h>
 
-#include "my_system.h"
+#include "sys_data.h"
 
-#include "Serial.h"
-#include "FreeRTOS.h"
-#include "semphr.h"
-
-static SemaphoreHandle_t elog_mutex = NULL;
+#if SYS_USE_FREERTOS
+	static SemaphoreHandle_t elog_mutex = NULL;
+#endif /* SYS_USE_FREERTOS */
 
 /**
  * EasyLogger port initialize
@@ -46,12 +44,16 @@ ElogErrCode elog_port_init(void) {
 
     /* add your code here */
 	
-	Serial_Init(0);
-	
-	elog_mutex = xSemaphoreCreateMutex();
-	if (elog_mutex == NULL) {
-		return -1;
-	}
+	#if SYS_USE_SERIAL
+		Serial_Init(0);
+	#endif /* SYS_USE_SERIAL */
+
+	#if SYS_USE_FREERTOS
+		elog_mutex = xSemaphoreCreateMutex();
+		if (elog_mutex == NULL) {
+			return 2;
+		}
+	#endif /* SYS_USE_FREERTOS */
     
     return result;
 }
@@ -76,9 +78,11 @@ void elog_port_output(const char *log, size_t size) {
     
     /* add your code here */
 
-	for (size_t i = 0; i < size; i++) {
-		Serial_SendByte(log[i]);
-	}
+	#if SYS_USE_SERIAL
+		for (size_t i = 0; i < size; i++) {
+			Serial_SendByte(log[i]);
+		}
+	#endif /* SYS_USE_SERIAL */
 }
 
 /**
@@ -88,11 +92,13 @@ void elog_port_output_lock(void) {
     
     /* add your code here */
 
-//	__disable_irq();	// 裸机，关闭全局中断
-	
-	if (elog_mutex != NULL) {
-		xSemaphoreTake(elog_mutex, portMAX_DELAY);
-	}
+	#if SYS_USE_FREERTOS
+		if (elog_mutex != NULL) {
+			xSemaphoreTake(elog_mutex, portMAX_DELAY);
+		}
+	#else /* SYS_USE_FREERTOS */
+		__disable_irq();	// 裸机，关闭全局中断
+	#endif /* SYS_USE_FREERTOS */
 }
 
 /**
@@ -102,11 +108,13 @@ void elog_port_output_unlock(void) {
     
     /* add your code here */
 
-//	__enable_irq();		// 裸机，开启全局中断
-	
-	if (elog_mutex != NULL) {
-		xSemaphoreGive(elog_mutex);
-	}
+	#if SYS_USE_FREERTOS
+		if (elog_mutex != NULL) {
+			xSemaphoreGive(elog_mutex);
+		}
+	#else /* SYS_USE_FREERTOS */
+		__enable_irq();		// 裸机，开启全局中断
+	#endif /* SYS_USE_FREERTOS */
 }
 
 /**
@@ -117,9 +125,12 @@ void elog_port_output_unlock(void) {
 const char *elog_port_get_time(void) {
     
     /* add your code here */
-
-//    return "10:08:12";
-	return system_time;
+	
+	#if SYS_USE_RTC
+	return sys_time_str;
+	#else /* SYS_USE_RTC */
+    return "10:08:12";
+	#endif /* SYS_USE_RTC */
 }
 
 /**
@@ -143,7 +154,7 @@ const char *elog_port_get_t_info(void) {
     
     /* add your code here */
 
-//	return "tid:24";
+	return "tid:24";
 	
-	return (const char*)pcTaskGetName(NULL);
+//	return (const char*)pcTaskGetName(NULL);
 }

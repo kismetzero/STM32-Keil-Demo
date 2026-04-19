@@ -23,4 +23,4 @@ i2c_bus_status_t i2c_bus_stm32_std_sw_create_handle(i2c_bus_handle_t *handle, i2
 }
 #endif
 
-#endif	/* __I2C_BUS_STM32_STD_H */
+#endif /* __I2C_BUS_STM32_STD_H */

@@ -340,7 +340,7 @@
               <MiscControls>-Wno-invalid-utf8</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Libraries\EasyLogger;.\System;.\Hardware;.\User</IncludePath>
+              <IncludePath>.\Libraries\EasyLogger;.\System\sys;.\System;.\Hardware;.\User</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -540,14 +540,24 @@
               <FilePath>.\User\main.c</FilePath>
             </File>
             <File>
-              <FileName>my_system.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\User\my_system.c</FilePath>
+              <FileName>sys_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\sys_config.h</FilePath>
             </File>
             <File>
-              <FileName>my_system.h</FileName>
+              <FileName>sys_data.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\User\my_system.h</FilePath>
+              <FilePath>.\User\sys_data.h</FilePath>
+            </File>
+            <File>
+              <FileName>sys_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\sys_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys_core.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\sys_core.h</FilePath>
             </File>
           </Files>
         </Group>

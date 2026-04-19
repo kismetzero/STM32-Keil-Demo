@@ -1,32 +1,61 @@
-#include "my_system.h"
-
-#include "FreeRTOS.h"
-#include "task.h"
+#include "sys_data.h"
 
 #define LOG_TAG "main"
 #include "elog.h"
 
-// 定义任务句柄
-TaskHandle_t xTaskHandle1 = NULL;
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "task.h"
 
-// 任务1函数
-void vTask1(void *pvParameters)
-{
-    while(1)
-    {
-		system_sync_time();
-        log_a("task1: %s", system_time);
-		W25QX_ReadID(&w25qx_handle);
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // 延时500ms
-    }
-}
+static SemaphoreHandle_t mutex_lock;
+
+#define SYS_USE_FREERTOS_TEST 1
+
+#if SYS_USE_FREERTOS_TEST
+	TaskHandle_t test_xTaskHandle;
+	void test_vTask(void *pvParameters) {
+		uint8_t count = 1;
+		for(;;) {
+			xSemaphoreTake(mutex_lock, portMAX_DELAY);
+			AHT20_Measure(&aht20_handle);
+			log_a("test: count=%d", count++);
+			xSemaphoreGive(mutex_lock);
+			vTaskDelay(2000 / portTICK_PERIOD_MS);
+		}
+	}
+#endif /* SYS_USE_FREERTOS_TEST */
+	
+#if SYS_USE_FREERTOS
+	TaskHandle_t SyncTime_xTaskHandle;
+	void SyncTime_vTask(void *pvParameters) {
+		uint8_t count = 1;
+		for(;;) {
+			xSemaphoreTake(mutex_lock, portMAX_DELAY);
+			sys_sync_time();
+			log_a("SyncTime: count=%d", count++);
+			xSemaphoreGive(mutex_lock);
+			vTaskDelay(500 / portTICK_PERIOD_MS);
+		}
+	}
+#endif /* SYS_USE_FREERTOS */
 
 int main(void) {
-	int i = 0;
-	system_init();
-	xTaskCreate(vTask1, "Task1", 128, NULL, 1, &xTaskHandle1);
-	vTaskStartScheduler();
+	sys_core_init();
+	
+	mutex_lock = xSemaphoreCreateMutex();
+	if (mutex_lock == NULL) {
+		log_a("mutex_lock create fale");
+	}
+	
+	#if SYS_USE_FREERTOS_TEST
+		xTaskCreate(test_vTask, "testTask", 256, NULL, 1, &test_xTaskHandle);
+	#endif /* SYS_USE_FREERTOS_TEST */
+	
+	#if SYS_USE_FREERTOS
+		xTaskCreate(SyncTime_vTask, "SyncTimeTask", 128, NULL, 1, &SyncTime_xTaskHandle);
+		vTaskStartScheduler();
+	#endif /* SYS_USE_FREERTOS */
+	
 	while(1) {
-		
 	}
 }
