@@ -559,6 +559,11 @@
               <FileType>5</FileType>
               <FilePath>.\User\sys_core.h</FilePath>
             </File>
+            <File>
+              <FileName>sys_inc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\sys_inc.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -28,11 +28,14 @@
  
 #include <elog.h>
 
+#define SYS_USE_FREERTOS
+#define SYS_USE_SERIAL
+#define SYS_USE_RTC
 #include "sys_data.h"
 
-#if SYS_USE_FREERTOS
+#if SYS_EN_FREERTOS
 	static SemaphoreHandle_t elog_mutex = NULL;
-#endif /* SYS_USE_FREERTOS */
+#endif /* SYS_EN_FREERTOS */
 
 /**
  * EasyLogger port initialize
@@ -44,16 +47,16 @@ ElogErrCode elog_port_init(void) {
 
     /* add your code here */
 	
-	#if SYS_USE_SERIAL
+	#if SYS_EN_SERIAL
 		Serial_Init(0);
-	#endif /* SYS_USE_SERIAL */
+	#endif /* SYS_EN_SERIAL */
 
-	#if SYS_USE_FREERTOS
+	#if SYS_EN_FREERTOS
 		elog_mutex = xSemaphoreCreateMutex();
 		if (elog_mutex == NULL) {
 			return 2;
 		}
-	#endif /* SYS_USE_FREERTOS */
+	#endif /* SYS_EN_FREERTOS */
     
     return result;
 }
@@ -78,11 +81,11 @@ void elog_port_output(const char *log, size_t size) {
     
     /* add your code here */
 
-	#if SYS_USE_SERIAL
+	#if SYS_EN_SERIAL
 		for (size_t i = 0; i < size; i++) {
 			Serial_SendByte(log[i]);
 		}
-	#endif /* SYS_USE_SERIAL */
+	#endif /* SYS_EN_SERIAL */
 }
 
 /**
@@ -92,13 +95,13 @@ void elog_port_output_lock(void) {
     
     /* add your code here */
 
-	#if SYS_USE_FREERTOS
+	#if SYS_EN_FREERTOS
 		if (elog_mutex != NULL) {
 			xSemaphoreTake(elog_mutex, portMAX_DELAY);
 		}
-	#else /* SYS_USE_FREERTOS */
+	#else /* SYS_EN_FREERTOS */
 		__disable_irq();	// 裸机，关闭全局中断
-	#endif /* SYS_USE_FREERTOS */
+	#endif /* SYS_EN_FREERTOS */
 }
 
 /**
@@ -108,13 +111,13 @@ void elog_port_output_unlock(void) {
     
     /* add your code here */
 
-	#if SYS_USE_FREERTOS
+	#if SYS_EN_FREERTOS
 		if (elog_mutex != NULL) {
 			xSemaphoreGive(elog_mutex);
 		}
-	#else /* SYS_USE_FREERTOS */
+	#else /* SYS_EN_FREERTOS */
 		__enable_irq();		// 裸机，开启全局中断
-	#endif /* SYS_USE_FREERTOS */
+	#endif /* SYS_EN_FREERTOS */
 }
 
 /**
@@ -126,11 +129,11 @@ const char *elog_port_get_time(void) {
     
     /* add your code here */
 	
-	#if SYS_USE_RTC
+	#if SYS_EN_RTC
 	return sys_time_str;
-	#else /* SYS_USE_RTC */
+	#else /* SYS_EN_RTC */
     return "10:08:12";
-	#endif /* SYS_USE_RTC */
+	#endif /* SYS_EN_RTC */
 }
 
 /**
