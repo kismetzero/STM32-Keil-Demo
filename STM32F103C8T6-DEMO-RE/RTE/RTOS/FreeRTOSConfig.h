@@ -783,7 +783,7 @@ extern uint32_t SystemCoreClock;
 #define INCLUDE_vTaskDelay                     1	// 基础延时。最常用的“阻塞”函数，必须开启。
 #define INCLUDE_xTaskGetSchedulerState         1	// 查询调度器是开启还是暂停状态。
 #define INCLUDE_xTaskGetCurrentTaskHandle      1	// 获取当前正在运行的任务句柄。用于通用库函数中。
-#define INCLUDE_uxTaskGetStackHighWaterMark    0	// 查询任务堆栈的“最低剩余值”（水位线）。调试堆栈大小时非常有用，但发布版本可关闭以省 Flash。
+#define INCLUDE_uxTaskGetStackHighWaterMark    1	// 查询任务堆栈的“最低剩余值”（水位线）。调试堆栈大小时非常有用，但发布版本可关闭以省 Flash。
 #define INCLUDE_xTaskGetIdleTaskHandle         0	// 获取空闲任务的句柄。极少用到，除非你要监控空闲任务。
 #define INCLUDE_eTaskGetState                  1	// 查询任务处于“运行”、“就绪”、“阻塞”还是“挂起”状态。调试时很有用。
 #define INCLUDE_xTimerPendFunctionCall         1	// 允许在中断中将回调函数“挂起”到定时器服务任务中执行。如果你用软件定时器，建议开启。

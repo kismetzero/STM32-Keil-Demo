@@ -18,11 +18,6 @@ W25QX_Status_t W25QX_Init(W25QX_Handle_t *handle, void *hspi) {
 		return W25QX_STATUS_ERR_INVALID_PARAM;
 	}
 	handle->hspi = hspi;
-	W25QX_Status_t ret = W25QX_ReadID(handle);
-	if (ret != W25QX_STATUS_OK) {
-		log_e("read ID fail! (code: %d)", ret);
-		return W25QX_STATUS_ERR_SPI_ERR;
-	}
 	handle->inited = 1;
 	return W25QX_STATUS_OK;
 }

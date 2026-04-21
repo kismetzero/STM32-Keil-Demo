@@ -16,6 +16,7 @@ typedef enum {
 	I2C_BUS_STATUS_ERR_NO_INIT,
 	I2C_BUS_STATUS_ERR_BUSY,
 	I2C_BUS_STATUS_ERR_NACK,
+	I2C_BUS_STATUS_ERR_TIMEOUT,
 	I2C_BUS_STATUS_ERR_DEV_NONE,
 	I2C_BUS_STATUS_ERR_REG_NONE,
 } i2c_bus_status_t;
@@ -30,6 +31,8 @@ struct i2c_bus_handle_s {
 
 struct i2c_bus_ops_s {
 	i2c_bus_status_t (*init)(i2c_bus_handle_t *handle);
+	i2c_bus_status_t (*deinit)(i2c_bus_handle_t *handle);
+	
 	i2c_bus_status_t (*start)(i2c_bus_handle_t *handle);
 	i2c_bus_status_t (*stop)(i2c_bus_handle_t *handle);
 	i2c_bus_status_t (*send_ack)(i2c_bus_handle_t *handle, bool ack);
@@ -53,6 +56,13 @@ static inline i2c_bus_status_t i2c_init(i2c_bus_handle_t *handle) {
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	return handle->ops->init(handle);
+}
+
+static inline i2c_bus_status_t i2c_deinit(i2c_bus_handle_t *handle) {
+	if (handle == NULL || handle->ops == NULL || handle->ops->deinit == NULL) {
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	return handle->ops->deinit(handle);
 }
 
 static inline i2c_bus_status_t i2c_start(i2c_bus_handle_t *handle) {

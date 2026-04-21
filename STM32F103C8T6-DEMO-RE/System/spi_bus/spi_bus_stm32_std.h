@@ -4,6 +4,9 @@
 #include "spi_bus.h"
 #include "stm32f10x.h"
 
+#define SYS_USE_FREERTOS
+#include "sys_inc.h"
+
 #ifdef __cplusplus
 	extern "C" {
 #endif
@@ -18,34 +21,42 @@ typedef struct {
 spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi_bus_stm32_std_cs_config_t *cfg);
 
 typedef struct {
+	#if SYS_EN_FREERTOS
+		SemaphoreHandle_t mutex_lock;
+	#endif /* SYS_EN_OS */
 	GPIO_TypeDef*	sck_gpio_port;
 	GPIO_TypeDef*	mosi_gpio_port;
 	GPIO_TypeDef*	miso_gpio_port;
 	uint32_t		sck_gpio_clk;
 	uint32_t		mosi_gpio_clk;
 	uint32_t		miso_gpio_clk;
-	spi_bus_mode_t	mode;
 	uint16_t		sck_gpio_pin;
 	uint16_t		mosi_gpio_pin;
 	uint16_t		miso_gpio_pin;
+	spi_bus_mode_t	mode;
 	uint8_t			inited;
 } spi_bus_stm32_std_sw_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_sw_config_t *cfg);
 
 typedef struct {
+	#if SYS_EN_FREERTOS
+		SemaphoreHandle_t mutex_lock;
+	#endif /* SYS_EN_OS */
 	SPI_TypeDef*	spi_periph;
 	GPIO_TypeDef*	spi_gpio_port;
 	uint32_t		spi_clk;
-	spi_bus_mode_t mode;
 	uint32_t		spi_gpio_clk;
 	uint16_t		sck_gpio_pin;
 	uint16_t		mosi_gpio_pin;
 	uint16_t		miso_gpio_pin;
+	spi_bus_mode_t	mode;
 	uint8_t			inited;
 } spi_bus_stm32_std_hw_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_hw_config_t *cfg);
+
+#if SPI_BUS_USE_MACRO_IMPL
 
 typedef struct {
 	spi_bus_mode_t	mode;
@@ -61,6 +72,8 @@ typedef struct {
 } spi_bus_stm32_std_HW_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_HW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_HW_config_t *cfg);
+
+#endif /* SPI_BUS_USE_MACRO_IMPL */
 
 #ifdef __cplusplus
 }

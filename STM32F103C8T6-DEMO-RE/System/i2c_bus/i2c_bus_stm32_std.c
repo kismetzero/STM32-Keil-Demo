@@ -224,6 +224,30 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_init(i2c_bus_handle_t *handle) 
 	return I2C_BUS_STATUS_OK;
 }
 
+static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_deinit(i2c_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return I2C_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (cfg->mutex_lock != NULL) {
+			vSemaphoreDelete(cfg->mutex_lock);
+            cfg->mutex_lock = NULL;
+		}
+	#endif /* SYS_EN_OS */
+	cfg->inited = 0;
+	return I2C_BUS_STATUS_OK;
+}
+
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_start(i2c_bus_handle_t *handle) {
 	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
@@ -554,6 +578,7 @@ __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_reg(i2c_bus_hand
 
 static i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.init = i2c_bus_stm32_std_sw_i2c_init,
+	.deinit = i2c_bus_stm32_std_sw_i2c_deinit,
 	.start = i2c_bus_stm32_std_sw_i2c_start,
 	.stop = i2c_bus_stm32_std_sw_i2c_stop,
 	.send_ack = i2c_bus_stm32_std_sw_i2c_send_ack,

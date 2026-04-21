@@ -94,17 +94,21 @@
 #endif /* SYS_EN_SHT40 */
 	
 #if SYS_EN_FREERTOS
-	static SemaphoreHandle_t mutex_lock;
+//	static SemaphoreHandle_t mutex_lock;
 	
 	#define SYS_EN_FREERTOS_TEST 1
 
 	#if SYS_EN_FREERTOS_TEST
 		TaskHandle_t test_xTaskHandle;
 		void test_vTask(void *pvParameters) {
+			UBaseType_t uxHighWaterMark;
 			for(;;) {
 //				xSemaphoreTake(mutex_lock, portMAX_DELAY);
-				AHT20_Measure(&aht20_handle);
+//				AHT20_Measure(&aht20_handle);
+				W25QX_ReadID(&w25qx_handle);
 //				xSemaphoreGive(mutex_lock);
+				uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+				log_d("test Task Stack Left: %d words (%d bytes)", uxHighWaterMark, uxHighWaterMark * 4);
 				vTaskDelay(2000 / portTICK_PERIOD_MS);
 			}
 		}
@@ -124,10 +128,13 @@
 	#if SYS_EN_FREERTOS
 		TaskHandle_t SyncTime_xTaskHandle;
 		void SyncTime_vTask(void *pvParameters) {
+//			UBaseType_t uxHighWaterMark;
 			for(;;) {
 //				xSemaphoreTake(mutex_lock, portMAX_DELAY);
 				sys_sync_time();
 //				xSemaphoreGive(mutex_lock);
+//				uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+//				log_d("sync Task Stack Left: %d words (%d bytes)", uxHighWaterMark, uxHighWaterMark * 4);
 				vTaskDelay(500 / portTICK_PERIOD_MS);
 			}
 		}
@@ -142,12 +149,12 @@ void sys_core_init() {
 		ret = elog_init();
 		if (ret != ELOG_NO_ERR) { while(1) { __NOP(); } }
 		/* set EasyLogger log format */
-		elog_set_fmt(ELOG_LVL_ASSERT, ELOG_FMT_ALL);
-		elog_set_fmt(ELOG_LVL_ERROR, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
-		elog_set_fmt(ELOG_LVL_WARN, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
-		elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
-		elog_set_fmt(ELOG_LVL_DEBUG, ELOG_FMT_ALL & ~(ELOG_FMT_FUNC | ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
-		elog_set_fmt(ELOG_LVL_VERBOSE, ELOG_FMT_ALL & ~(ELOG_FMT_FUNC | ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_ASSERT, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_ERROR, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_WARN, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_DEBUG, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_VERBOSE, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
 //		elog_assert_set_hook(my_elog_assert_hook);
 		/* start EasyLogger */
 		elog_start();
@@ -204,19 +211,18 @@ void sys_core_init() {
 	#endif /* SYS_EN_SHT40 */
 		
 	#if SYS_EN_FREERTOS
-		mutex_lock = xSemaphoreCreateMutex();
-		if (mutex_lock == NULL) {
-			log_e("mutex_lock create fale");
-		}
-		xTaskCreate(SyncTime_vTask, "SyncTimeTask", 128, NULL, 1, &SyncTime_xTaskHandle);
+//		mutex_lock = xSemaphoreCreateMutex();
+//		if (mutex_lock == NULL) {
+//			log_e("mutex_lock create fale");
+//		}
+
+		xTaskCreate(SyncTime_vTask, "SyncTimeTask", 140, NULL, 1, &SyncTime_xTaskHandle);
 		
 		#if SYS_EN_FREERTOS_TEST
-			xTaskCreate(test_vTask, "testTask", 256, NULL, 1, &test_xTaskHandle);
+			xTaskCreate(test_vTask, "testTask", 190, NULL, 1, &test_xTaskHandle);
 		#endif /* SYS_EN_FREERTOS_TEST */
 	#endif /* SYS_EN_FREERTOS */
-		
-	
-		
+
 	#if SYS_EN_FREERTOS
 		vTaskStartScheduler();
 	#endif /* SYS_EN_FREERTOS */
