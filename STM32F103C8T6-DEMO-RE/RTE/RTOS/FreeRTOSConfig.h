@@ -745,7 +745,7 @@ extern uint32_t SystemCoreClock;
 
 #define configUSE_TASK_NOTIFICATIONS           1	// 1-开启任务通知功能，默认开启
 #define configUSE_MUTEXES                      1	// 1-使用互斥信号量
-#define configUSE_RECURSIVE_MUTEXES            0	// 1-使用递归互斥信号量（嵌套互斥锁）
+#define configUSE_RECURSIVE_MUTEXES            1	// 1-使用递归互斥信号量（嵌套互斥锁）
 #define configUSE_COUNTING_SEMAPHORES          1	// 1-使用计数信号量
 #define configUSE_QUEUE_SETS                   0	// 1-启用队列
 #define configUSE_APPLICATION_TASK_TAG         0	// 任务标签

@@ -95,21 +95,23 @@
 	
 #if SYS_EN_FREERTOS
 	static SemaphoreHandle_t mutex_lock;
+	
+	#define SYS_EN_FREERTOS_TEST 1
+
+	#if SYS_EN_FREERTOS_TEST
+		TaskHandle_t test_xTaskHandle;
+		void test_vTask(void *pvParameters) {
+			for(;;) {
+//				xSemaphoreTake(mutex_lock, portMAX_DELAY);
+				AHT20_Measure(&aht20_handle);
+//				xSemaphoreGive(mutex_lock);
+				vTaskDelay(2000 / portTICK_PERIOD_MS);
+			}
+		}
+	#endif /* SYS_EN_FREERTOS_TEST */
 #endif /* SYS_EN_FREERTOS */
 	
-#define SYS_EN_FREERTOS_TEST 1
 
-#if SYS_EN_FREERTOS_TEST
-	TaskHandle_t test_xTaskHandle;
-	void test_vTask(void *pvParameters) {
-		for(;;) {
-			xSemaphoreTake(mutex_lock, portMAX_DELAY);
-			AHT20_Measure(&aht20_handle);
-			xSemaphoreGive(mutex_lock);
-			vTaskDelay(2000 / portTICK_PERIOD_MS);
-		}
-	}
-#endif /* SYS_EN_FREERTOS_TEST */
 	
 #if SYS_EN_RTC
 	char sys_time_str[9] = "00:00:00";
@@ -123,9 +125,9 @@
 		TaskHandle_t SyncTime_xTaskHandle;
 		void SyncTime_vTask(void *pvParameters) {
 			for(;;) {
-				xSemaphoreTake(mutex_lock, portMAX_DELAY);
+//				xSemaphoreTake(mutex_lock, portMAX_DELAY);
 				sys_sync_time();
-				xSemaphoreGive(mutex_lock);
+//				xSemaphoreGive(mutex_lock);
 				vTaskDelay(500 / portTICK_PERIOD_MS);
 			}
 		}
@@ -207,11 +209,13 @@ void sys_core_init() {
 			log_e("mutex_lock create fale");
 		}
 		xTaskCreate(SyncTime_vTask, "SyncTimeTask", 128, NULL, 1, &SyncTime_xTaskHandle);
+		
+		#if SYS_EN_FREERTOS_TEST
+			xTaskCreate(test_vTask, "testTask", 256, NULL, 1, &test_xTaskHandle);
+		#endif /* SYS_EN_FREERTOS_TEST */
 	#endif /* SYS_EN_FREERTOS */
 		
-	#if SYS_EN_FREERTOS_TEST
-		xTaskCreate(test_vTask, "testTask", 256, NULL, 1, &test_xTaskHandle);
-	#endif /* SYS_EN_FREERTOS_TEST */
+	
 		
 	#if SYS_EN_FREERTOS
 		vTaskStartScheduler();

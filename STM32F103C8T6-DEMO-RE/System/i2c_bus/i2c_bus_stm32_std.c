@@ -124,39 +124,45 @@ __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_send_byte(i2c_bus_stm32_st
 static i2c_bus_status_t i2c_bus_stm32_std_sw_protocol_transfer(i2c_bus_stm32_std_sw_config_t *cfg, uint8_t dev_addr, 
 																const uint8_t *tx_buf, uint16_t tx_len,
 																uint8_t *rx_buf, uint16_t rx_len) {
-	i2c_bus_status_t ret;
+	if (tx_len == 0 && rx_len == 0) { return I2C_BUS_STATUS_ERR_INVALID_PARAM; }
+	#if SYS_EN_FREERTOS
+		if (xSemaphoreTakeRecursive(cfg->mutex_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+			log_w("mutex_lock timeout");
+			return I2C_BUS_STATUS_ERR_BUSY;
+		}
+	#endif /* SYS_EN_OS */
+	i2c_bus_status_t ret = I2C_BUS_STATUS_OK;
 	if (tx_len > 0) {
 		// 发送起始信号
 		ret = i2c_bus_stm32_std_sw_start(cfg);
-		if (ret != I2C_BUS_STATUS_OK) { return ret; }
+		if (ret != I2C_BUS_STATUS_OK) { goto exit; }
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		i2c_bus_stm32_std_sw_send_byte(cfg, (dev_addr << 1) | 0x00);
 		ret = i2c_bus_stm32_std_sw_wait_ack(cfg);
 		if (ret != I2C_BUS_STATUS_OK) {
-			i2c_bus_stm32_std_sw_stop(cfg);
-			return I2C_BUS_STATUS_ERR_DEV_NONE;
+			ret = I2C_BUS_STATUS_ERR_DEV_NONE;
+			goto stop;
 		}
 		// 发送数据
 		for (uint16_t i = 0; i < tx_len; i++) {
 			i2c_bus_stm32_std_sw_send_byte(cfg, tx_buf[i]);
 			ret = i2c_bus_stm32_std_sw_wait_ack(cfg);
 			if (ret != I2C_BUS_STATUS_OK) {
-				i2c_bus_stm32_std_sw_stop(cfg);
 				log_w("dev_addr=0x%02X write data[%d]=0x%02X (code: %d)", dev_addr, i, tx_buf[i], ret);
-				return ret;
+				goto stop;
 			}
 		}
 	}
 	if (rx_len > 0) {
 		// 发送起始信号
 		ret = i2c_bus_stm32_std_sw_start(cfg);
-		if (ret != I2C_BUS_STATUS_OK) { return ret; }
+		if (ret != I2C_BUS_STATUS_OK) { goto exit; }
 		// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 		i2c_bus_stm32_std_sw_send_byte(cfg, (dev_addr << 1) | 0x01);
 		ret = i2c_bus_stm32_std_sw_wait_ack(cfg);
 		if (ret != I2C_BUS_STATUS_OK) {
-			i2c_bus_stm32_std_sw_stop(cfg);
-			return I2C_BUS_STATUS_ERR_DEV_NONE;
+			ret = I2C_BUS_STATUS_ERR_DEV_NONE;
+			goto stop;
 		}
 		// 发送数据
 		for (uint16_t i = 0; i < rx_len; i++) {
@@ -164,10 +170,13 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_protocol_transfer(i2c_bus_stm32_std
 			i2c_bus_stm32_std_sw_send_ack(cfg, i < rx_len - 1);
 		}
 	}
-	if (tx_len > 0 || rx_len > 0) {
-		i2c_bus_stm32_std_sw_stop(cfg);
-	}
-	return I2C_BUS_STATUS_OK;
+	stop:
+	i2c_bus_stm32_std_sw_stop(cfg);
+	exit:
+	#if SYS_EN_FREERTOS
+		xSemaphoreGiveRecursive(cfg->mutex_lock);
+	#endif /* SYS_EN_OS */
+	return ret;
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_init(i2c_bus_handle_t *handle) {
@@ -179,8 +188,23 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_init(i2c_bus_handle_t *handle) 
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	
 	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited == 1) {
+		return I2C_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (cfg->mutex_lock == NULL) {
+			cfg->mutex_lock = xSemaphoreCreateRecursiveMutex();
+			if (cfg->mutex_lock == NULL) {
+				log_e("mutex_lock create fail");
+				return I2C_BUS_STATUS_ERR;
+			}
+		}
+	#endif /* SYS_EN_OS */
+	// 使能 GPIO 总线时钟
 	RCC_APB2PeriphClockCmd(cfg->scl_gpio_clk | cfg->sda_gpio_clk, ENABLE);
+	// GPIO 初始化
 	GPIO_InitTypeDef GPIO_InitStructure;
 	//GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
@@ -195,6 +219,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_init(i2c_bus_handle_t *handle) 
 	i2c_bus_stm32_std_sw_scl_write(cfg, 1);
 	i2c_bus_stm32_std_sw_sda_write(cfg, 1);
 	log_d("success! (scl_pin=%d, sda_pin=%d)", cfg->scl_gpio_pin, cfg->sda_gpio_pin);
+	cfg->inited = 1;
 	return I2C_BUS_STATUS_OK;
 }
 
@@ -209,7 +234,12 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_start(i2c_bus_handle_t *handle)
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return i2c_bus_stm32_std_sw_start((i2c_bus_stm32_std_sw_config_t *)handle->user_data);
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	return i2c_bus_stm32_std_sw_start(cfg);
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_stop(i2c_bus_handle_t *handle) {
@@ -223,7 +253,12 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_stop(i2c_bus_handle_t *handle) 
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return i2c_bus_stm32_std_sw_stop((i2c_bus_stm32_std_sw_config_t *)handle->user_data);
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	return i2c_bus_stm32_std_sw_stop(cfg);
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_ack(i2c_bus_handle_t *handle, bool ack) {
@@ -237,7 +272,12 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_ack(i2c_bus_handle_t *hand
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return i2c_bus_stm32_std_sw_send_ack((i2c_bus_stm32_std_sw_config_t *)handle->user_data, ack);
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	return i2c_bus_stm32_std_sw_send_ack(cfg, ack);
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_wait_ack(i2c_bus_handle_t *handle) {
@@ -251,7 +291,12 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_wait_ack(i2c_bus_handle_t *hand
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return i2c_bus_stm32_std_sw_wait_ack((i2c_bus_stm32_std_sw_config_t *)handle->user_data);
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	return i2c_bus_stm32_std_sw_wait_ack(cfg);
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_recv_byte(i2c_bus_handle_t *handle, uint8_t *byte) {
@@ -265,11 +310,16 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_recv_byte(i2c_bus_handle_t *han
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
 	if (byte == NULL) {
 		log_e("byte == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return i2c_bus_stm32_std_sw_recv_byte((i2c_bus_stm32_std_sw_config_t *)handle->user_data, byte);
+	return i2c_bus_stm32_std_sw_recv_byte(cfg, byte);
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_byte(i2c_bus_handle_t *handle, uint8_t byte) {
@@ -283,7 +333,12 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_byte(i2c_bus_handle_t *han
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	return i2c_bus_stm32_std_sw_send_byte((i2c_bus_stm32_std_sw_config_t *)handle->user_data, byte);
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	return i2c_bus_stm32_std_sw_send_byte(cfg, byte);
 }
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len) {
@@ -297,6 +352,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *ha
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
 	if (data == NULL) {
 		log_e("data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -305,7 +365,6 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *ha
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
 	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_protocol_transfer(cfg, dev_addr, NULL, 0, data, len);
 	if (ret != I2C_BUS_STATUS_OK) {
 		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
@@ -330,6 +389,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_bytes(i2c_bus_handle_t *h
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
 	if (data == NULL) {
 		log_e("data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -338,7 +402,6 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_bytes(i2c_bus_handle_t *h
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
 	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_protocol_transfer(cfg, dev_addr, data, len, NULL, 0);
 	if (ret != I2C_BUS_STATUS_OK) {
 		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
@@ -373,6 +436,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_regs(i2c_bus_handle_t *han
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
 	if (data == NULL) {
 		log_e("data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -381,7 +449,6 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_regs(i2c_bus_handle_t *han
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
 	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_protocol_transfer(cfg, dev_addr, &reg_addr, 1, data, len);
 	if (ret != I2C_BUS_STATUS_OK) {
 		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
@@ -410,6 +477,11 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_regs(i2c_bus_handle_t *ha
 		log_e("user_data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
 	if (data == NULL) {
 		log_e("data == NULL");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
@@ -418,41 +490,57 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_regs(i2c_bus_handle_t *ha
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
-	i2c_bus_status_t ret;
+	#if SYS_EN_FREERTOS
+		if (xSemaphoreTakeRecursive(cfg->mutex_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+			log_w("mutex_lock timeout");
+			return I2C_BUS_STATUS_ERR_BUSY;
+		}
+	#endif /* SYS_EN_OS */
+	i2c_bus_status_t ret = I2C_BUS_STATUS_OK;
 	// 发送起始信号
 	ret = i2c_bus_stm32_std_sw_start(cfg);
-	if (ret != I2C_BUS_STATUS_OK) {
-		log_e("bus busy (code: %d)", ret);
-		return ret;
-	}
+	if (ret != I2C_BUS_STATUS_OK) { goto exit; }
 	// 发送设备地址 (写(W): 0x00; 读(R): 0x01)
 	i2c_bus_stm32_std_sw_send_byte(cfg, (dev_addr << 1) | 0x00);
 	ret = i2c_bus_stm32_std_sw_wait_ack(cfg);
 	if (ret != I2C_BUS_STATUS_OK) {
-		i2c_bus_stm32_std_sw_stop(cfg);
-		log_e("dev(0x%02X) not find (code: %d)", dev_addr, ret);
-		return I2C_BUS_STATUS_ERR_DEV_NONE;
+		ret = I2C_BUS_STATUS_ERR_DEV_NONE;
+		goto stop;
 	}
 	// 发送寄存器地址
 	i2c_bus_stm32_std_sw_send_byte(cfg, reg_addr);
 	ret = i2c_bus_stm32_std_sw_wait_ack(cfg);
 	if (ret != I2C_BUS_STATUS_OK) {
-		i2c_bus_stm32_std_sw_stop(cfg);
-		log_w("dev(0x%02X) write reg(0x%02X) fail (code: %d)", dev_addr, reg_addr, ret);
-		return I2C_BUS_STATUS_ERR_REG_NONE;
+		ret = I2C_BUS_STATUS_ERR_REG_NONE;
+		goto stop;
 	}
 	// 发送数据
 	for (uint16_t i = 0; i < len; i++) {
 		i2c_bus_stm32_std_sw_send_byte(cfg, data[i]);
 		ret = i2c_bus_stm32_std_sw_wait_ack(cfg);
 		if (ret != I2C_BUS_STATUS_OK) {
-			i2c_bus_stm32_std_sw_stop(cfg);
 			log_w("dev(0x%02X) write data[%d]=0x%02X (code: %d)", dev_addr, i, data[i], ret);
-			return ret;
+			goto stop;
 		}
 	}
-	return i2c_bus_stm32_std_sw_stop(cfg);
+	stop:
+	i2c_bus_stm32_std_sw_stop(cfg);
+	exit:
+	#if SYS_EN_FREERTOS
+		xSemaphoreGiveRecursive(cfg->mutex_lock);
+	#endif /* SYS_EN_OS */
+	if (ret != I2C_BUS_STATUS_OK) {
+		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
+			log_e("bus busy (code: %d)", ret);
+		} else if (ret == I2C_BUS_STATUS_ERR_DEV_NONE) {
+			log_e("dev(0x%02X) not find (code: %d)", dev_addr, ret);
+		} else if (ret == I2C_BUS_STATUS_ERR_REG_NONE) {
+			log_w("dev(0x%02X) write reg(0x%02X) fail (code: %d)", dev_addr, reg_addr, ret);
+		} else {
+			log_e("unknown erro (code: %d)", ret);
+		}
+	}
+	return ret;
 }
 
 __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t *byte) {
