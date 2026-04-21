@@ -191,6 +191,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_init(i2c_bus_handle_t *handle) 
 	
 	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
 	if (cfg->inited == 1) {
+		log_d("already init");
 		return I2C_BUS_STATUS_OK;
 	}
 	#if SYS_EN_FREERTOS

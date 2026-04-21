@@ -13,7 +13,9 @@
 // 定义返回状态码
 typedef enum {
     SHT40_STATUS_OK = 0,
+	SHT40_STATUS_ERR,
 	SHT40_STATUS_ERR_INVALID_PARAM,
+	SHT40_STATUS_ERR_NO_INIT,
 	SHT40_STATUS_ERR_I2C_ERR,
 	SHT40_STATUS_ERR_BUSY,
 	SHT40_STATUS_ERR_CRC,
@@ -40,11 +42,12 @@ typedef enum {
 // 定义 SHT40 设备句柄结构体
 typedef struct SHT40_Handle_s SHT40_Handle_t;
 struct SHT40_Handle_s {
-	float temperature;
-	float humidity;
+	float		temperature;
+	float		humidity;
 	SHT40_Repeatability_t repeatability;
-	void *hi2c;
-	uint8_t i2c_addr;
+	void		*hi2c;
+	uint8_t		i2c_addr;
+	uint8_t		inited;
 };
 
 // 设备初始化

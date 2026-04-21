@@ -9,7 +9,9 @@
 
 typedef enum {
     W25QX_STATUS_OK = 0,
+	W25QX_STATUS_ERR,
 	W25QX_STATUS_ERR_INVALID_PARAM,
+	W25QX_STATUS_ERR_NO_INIT,
 	W25QX_STATUS_ERR_SPI_ERR,
 	W25QX_STATUS_ERR_BUSY,
 	W25QX_STATUS_ERR_CAL,
@@ -17,7 +19,8 @@ typedef enum {
 
 // 定义 W25QX 设备句柄结构体
 typedef struct {
-	void *hspi;
+	void		*hspi;
+	uint8_t		inited;
 } W25QX_Handle_t;
 
 W25QX_Status_t W25QX_Init(W25QX_Handle_t *handle, void *hspi);

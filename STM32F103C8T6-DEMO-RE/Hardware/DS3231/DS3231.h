@@ -11,7 +11,9 @@
 // 定义返回状态码
 typedef enum {
     DS3231_STATUS_OK = 0,
+	DS3231_STATUS_ERR,
 	DS3231_STATUS_ERR_INVALID_PARAM,
+	DS3231_STATUS_ERR_NO_INIT,
 	DS3231_STATUS_ERR_I2C_ERR,
 	DS3231_STATUS_ERR_BUSY,
 } DS3231_Status_t;
@@ -188,8 +190,9 @@ struct DS3231_DateTime_s {
 
 // 定义 DS3231 设备句柄结构体
 typedef struct {
-	void *hi2c;
-	uint8_t i2c_addr;
+	void		*hi2c;
+	uint8_t		i2c_addr;
+	uint8_t		inited;
 } DS3231_Handle_t;
 
 DS3231_Status_t DS3231_Init(DS3231_Handle_t *handle, void *hi2c, uint8_t i2c_addr);

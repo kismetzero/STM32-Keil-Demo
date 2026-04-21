@@ -12,6 +12,7 @@ typedef struct {
 	GPIO_TypeDef*	cs_gpio_port;
 	uint32_t		cs_gpio_clk;
 	uint16_t		cs_gpio_pin;
+	uint8_t			inited;
 } spi_bus_stm32_std_cs_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi_bus_stm32_std_cs_config_t *cfg);
@@ -27,6 +28,7 @@ typedef struct {
 	uint16_t		sck_gpio_pin;
 	uint16_t		mosi_gpio_pin;
 	uint16_t		miso_gpio_pin;
+	uint8_t			inited;
 } spi_bus_stm32_std_sw_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_sw_config_t *cfg);
@@ -40,19 +42,22 @@ typedef struct {
 	uint16_t		sck_gpio_pin;
 	uint16_t		mosi_gpio_pin;
 	uint16_t		miso_gpio_pin;
+	uint8_t			inited;
 } spi_bus_stm32_std_hw_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_hw_config_t *cfg);
 
 typedef struct {
-	spi_bus_mode_t mode;
+	spi_bus_mode_t	mode;
+	uint8_t			inited;
 } spi_bus_stm32_std_SW_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_SW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_SW_config_t *cfg);
 
 
 typedef struct {
-	spi_bus_mode_t mode;
+	spi_bus_mode_t	mode;
+	uint8_t			inited;
 } spi_bus_stm32_std_HW_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_HW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_HW_config_t *cfg);

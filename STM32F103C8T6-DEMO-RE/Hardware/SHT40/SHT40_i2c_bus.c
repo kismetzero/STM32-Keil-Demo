@@ -54,6 +54,10 @@ SHT40_Status_t SHT40_Init(SHT40_Handle_t *handle, void *hi2c, uint8_t i2c_addr, 
 		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited == 1) {
+		log_d("already init");
+		return SHT40_STATUS_OK;
+	}
 	if (hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
@@ -69,6 +73,7 @@ SHT40_Status_t SHT40_Init(SHT40_Handle_t *handle, void *hi2c, uint8_t i2c_addr, 
 		rep = SHT40_REP_DEFAULT;
 	}
 	handle->repeatability = rep;
+	handle->inited = 1;
 	return SHT40_STATUS_OK;
 }
 
@@ -76,6 +81,10 @@ SHT40_Status_t SHT40_Reset(SHT40_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return SHT40_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -94,6 +103,10 @@ SHT40_Status_t SHT40_Measure(SHT40_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return SHT40_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -136,6 +149,10 @@ SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *handle, SHT40_Heater_t heater
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return SHT40_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");

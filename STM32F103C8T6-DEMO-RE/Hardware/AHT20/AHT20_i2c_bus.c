@@ -30,6 +30,10 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *handle, void *hi2c, uint8_t i2c_addr) 
 		log_e("handle == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited == 1) {
+		log_d("already init");
+		return AHT20_STATUS_OK;
+	}
 	if (hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
@@ -40,26 +44,32 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *handle, void *hi2c, uint8_t i2c_addr) 
 		i2c_addr = AHT20_DEFAULT_I2C_ADDR;
 	}
 	handle->i2c_addr = i2c_addr;
-	uint8_t raw_data[6];
 	
-	delay_ms(50);
+	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
+	
+	delay_ms(50); // 上电后稍微延时，确保传感器就绪
+	
 	i2c_ret = i2c_write_bytes(handle->hi2c, handle->i2c_addr, AHT20_InitCommand, 3);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
+	
 	delay_ms(50);
+	
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
+	
 	// 检查校准位
 	if (!(raw_data[0] & (1 << 3))) {
 		log_e("not calibrated (bit 3 is 0)");
 		return AHT20_STATUS_ERR_CAL;
 	}
+	
 	float temperature = AHT20_CalcTemperature(raw_data);
 	float humidity = AHT20_CalcHumidity(raw_data);
 	if (humidity < 0) {
@@ -72,6 +82,8 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *handle, void *hi2c, uint8_t i2c_addr) 
 	handle->temperature = temperature;
 	handle->humidity = humidity;
 	log_d("temperature=%f humidity=%f", temperature, humidity);
+	
+	handle->inited = 1;
 	return AHT20_STATUS_OK;
 }
 
@@ -79,6 +91,10 @@ AHT20_Status_t AHT20_Reset(AHT20_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return AHT20_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -97,6 +113,10 @@ AHT20_Status_t AHT20_Measure(AHT20_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return AHT20_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return AHT20_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");

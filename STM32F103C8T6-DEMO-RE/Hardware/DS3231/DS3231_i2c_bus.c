@@ -10,6 +10,10 @@ DS3231_Status_t DS3231_Init(DS3231_Handle_t *handle, void *hi2c, uint8_t i2c_add
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited == 1) {
+		log_d("already init");
+		return DS3231_STATUS_OK;
+	}
 	if (hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
@@ -39,6 +43,7 @@ DS3231_Status_t DS3231_Init(DS3231_Handle_t *handle, void *hi2c, uint8_t i2c_add
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return DS3231_STATUS_ERR_I2C_ERR;
 	}
+	handle->inited = 1;
 	return DS3231_STATUS_OK;
 }
 
@@ -46,6 +51,10 @@ DS3231_Status_t DS3231_SoftwareReset(DS3231_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -90,6 +99,10 @@ DS3231_Status_t DS3231_ClearOSF(DS3231_Handle_t *handle) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
+	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return DS3231_STATUS_ERR_I2C_ERR;
@@ -116,6 +129,10 @@ DS3231_Status_t DS3231_ReadControlRegister(DS3231_Handle_t *handle, uint8_t *dat
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -146,6 +163,10 @@ DS3231_Status_t DS3231_ReadStatusRegister(DS3231_Handle_t *handle, uint8_t *data
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
+	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return DS3231_STATUS_ERR_I2C_ERR;
@@ -171,6 +192,10 @@ DS3231_Status_t DS3231_GetDateTime(DS3231_Handle_t *handle, DS3231_DateTime_t *d
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -212,6 +237,10 @@ DS3231_Status_t DS3231_SetDateTime(DS3231_Handle_t *handle, DS3231_DateTime_t *d
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -259,6 +288,10 @@ DS3231_Status_t DS3231_GetTime(DS3231_Handle_t *handle, DS3231_DateTime_t *dt) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
+	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return DS3231_STATUS_ERR_I2C_ERR;
@@ -292,6 +325,10 @@ DS3231_Status_t DS3231_SetTime(DS3231_Handle_t *handle, DS3231_DateTime_t *dt) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
@@ -330,6 +367,10 @@ DS3231_Status_t DS3231_GetDate(DS3231_Handle_t *handle, DS3231_DateTime_t *dt) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
+	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
 		return DS3231_STATUS_ERR_I2C_ERR;
@@ -359,6 +400,10 @@ DS3231_Status_t DS3231_SetDate(DS3231_Handle_t *handle, DS3231_DateTime_t *dt) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return DS3231_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return DS3231_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");

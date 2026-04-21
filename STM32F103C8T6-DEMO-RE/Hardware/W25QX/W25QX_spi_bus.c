@@ -9,6 +9,10 @@ W25QX_Status_t W25QX_Init(W25QX_Handle_t *handle, void *hspi) {
 		log_e("handle == NULL");
 		return W25QX_STATUS_ERR_INVALID_PARAM;
 	}
+	if (handle->inited == 1) {
+		log_d("already init");
+		return W25QX_STATUS_OK;
+	}
 	if (hspi == NULL) {
 		log_e("hspi == NULL");
 		return W25QX_STATUS_ERR_INVALID_PARAM;
@@ -19,6 +23,7 @@ W25QX_Status_t W25QX_Init(W25QX_Handle_t *handle, void *hspi) {
 		log_e("read ID fail! (code: %d)", ret);
 		return W25QX_STATUS_ERR_SPI_ERR;
 	}
+	handle->inited = 1;
 	return W25QX_STATUS_OK;
 }
 
@@ -26,6 +31,10 @@ W25QX_Status_t W25QX_Reset(W25QX_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return W25QX_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return W25QX_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hspi == NULL) {
 		log_e("hspi == NULL");
@@ -38,6 +47,10 @@ W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *handle) {
 	if (handle == NULL) {
 		log_e("handle == NULL");
 		return W25QX_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->inited != 1) {
+		log_e("no init");
+		return W25QX_STATUS_ERR_NO_INIT;
 	}
 	if (handle->hspi == NULL) {
 		log_e("hspi == NULL");
