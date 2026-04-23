@@ -80,7 +80,7 @@ static spi_bus_status_t spi_bus_stm32_std_cs_low(spi_cs_handle_t *handle) {
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_cs_ops_t spi_bus_stm32_std_cs_ops = {
+static const spi_cs_ops_t spi_bus_stm32_std_cs_ops = {
 	.init = spi_bus_stm32_std_cs_init,
 	.high = spi_bus_stm32_std_cs_high,
 	.low = spi_bus_stm32_std_cs_low,
@@ -346,7 +346,7 @@ static spi_bus_status_t spi_bus_stm32_std_sw_set_mode(spi_bus_handle_t *handle, 
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_ops_t spi_bus_stm32_std_sw_ops = {
+static const spi_bus_ops_t spi_bus_stm32_std_sw_ops = {
 	.init = spi_bus_stm32_std_sw_init,
 	.deinit = spi_bus_stm32_std_sw_deinit,
 	.switch_byte = spi_bus_stm32_std_sw_switch_byte,
@@ -615,7 +615,7 @@ static spi_bus_status_t spi_bus_stm32_std_hw_set_mode(spi_bus_handle_t *handle, 
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_ops_t spi_bus_stm32_std_hw_ops = {
+static const spi_bus_ops_t spi_bus_stm32_std_hw_ops = {
 	.init = spi_bus_stm32_std_hw_init,
 	.deinit = spi_bus_stm32_std_hw_deinit,
 	.switch_byte = spi_bus_stm32_std_hw_switch_byte,
@@ -847,7 +847,7 @@ static spi_bus_status_t spi_bus_stm32_std_SW_set_mode(spi_bus_handle_t *handle, 
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_ops_t spi_bus_stm32_std_SW_ops = {
+static const spi_bus_ops_t spi_bus_stm32_std_SW_ops = {
 	.init = spi_bus_stm32_std_SW_init,
 	.switch_byte = spi_bus_stm32_std_SW_switch_byte,
 	.read_byte = spi_bus_stm32_std_SW_read_byte,
@@ -1041,7 +1041,7 @@ static spi_bus_status_t spi_bus_stm32_std_HW_set_mode(spi_bus_handle_t *handle, 
 	return SPI_BUS_STATUS_OK;
 }
 
-static spi_bus_ops_t spi_bus_stm32_std_HW_ops = {
+static const spi_bus_ops_t spi_bus_stm32_std_HW_ops = {
 	.init = spi_bus_stm32_std_HW_init,
 	.switch_byte = spi_bus_stm32_std_HW_switch_byte,
 	.read_byte = spi_bus_stm32_std_HW_read_byte,

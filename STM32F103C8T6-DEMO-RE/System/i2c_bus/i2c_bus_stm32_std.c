@@ -576,7 +576,7 @@ __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_reg(i2c_bus_hand
 	return i2c_bus_stm32_std_sw_i2c_write_regs(handle, dev_addr, reg_addr, &byte, 1);
 }
 
-static i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
+static const i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.init = i2c_bus_stm32_std_sw_i2c_init,
 	.deinit = i2c_bus_stm32_std_sw_i2c_deinit,
 	.start = i2c_bus_stm32_std_sw_i2c_start,

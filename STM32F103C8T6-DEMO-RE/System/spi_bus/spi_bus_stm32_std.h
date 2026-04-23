@@ -56,8 +56,8 @@ typedef struct {
 
 spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_hw_config_t *cfg);
 
-#if SPI_BUS_USE_MACRO_IMPL
 
+#if SPI_BUS_USE_MACRO_IMPL
 typedef struct {
 	spi_bus_mode_t	mode;
 	uint8_t			inited;
@@ -65,15 +65,14 @@ typedef struct {
 
 spi_bus_status_t spi_bus_stm32_std_SW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_SW_config_t *cfg);
 
-
 typedef struct {
 	spi_bus_mode_t	mode;
 	uint8_t			inited;
 } spi_bus_stm32_std_HW_config_t;
 
 spi_bus_status_t spi_bus_stm32_std_HW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_HW_config_t *cfg);
-
 #endif /* SPI_BUS_USE_MACRO_IMPL */
+
 
 #ifdef __cplusplus
 }

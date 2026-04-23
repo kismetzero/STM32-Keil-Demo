@@ -40,7 +40,7 @@ struct spi_dev_handle_s {
 
 struct spi_cs_handle_s {
 	void *user_data; 
-	spi_cs_ops_t *ops;
+	const spi_cs_ops_t *ops;
 };
 
 struct spi_cs_ops_s {
@@ -51,7 +51,7 @@ struct spi_cs_ops_s {
 
 struct spi_bus_handle_s {
 	void *user_data; 
-	spi_bus_ops_t *ops;
+	const spi_bus_ops_t *ops;
 };
 
 struct spi_bus_ops_s {

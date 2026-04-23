@@ -26,7 +26,7 @@ typedef struct i2c_bus_ops_s i2c_bus_ops_t;
 
 struct i2c_bus_handle_s {
 	void *user_data; 
-	i2c_bus_ops_t *ops;
+	const i2c_bus_ops_t *ops;
 };
 
 struct i2c_bus_ops_s {
