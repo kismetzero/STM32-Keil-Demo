@@ -33,12 +33,18 @@ struct i2c_bus_ops_s {
 	i2c_bus_status_t (*init)(i2c_bus_handle_t *handle);
 	i2c_bus_status_t (*deinit)(i2c_bus_handle_t *handle);
 	
+	i2c_bus_status_t (*lock)(i2c_bus_handle_t *handle);
+	i2c_bus_status_t (*unlock)(i2c_bus_handle_t *handle);
+	
 	i2c_bus_status_t (*start)(i2c_bus_handle_t *handle);
 	i2c_bus_status_t (*stop)(i2c_bus_handle_t *handle);
 	i2c_bus_status_t (*send_ack)(i2c_bus_handle_t *handle, bool ack);
 	i2c_bus_status_t (*wait_ack)(i2c_bus_handle_t *handle);
 	i2c_bus_status_t (*recv_byte)(i2c_bus_handle_t *handle, uint8_t *byte);
 	i2c_bus_status_t (*send_byte)(i2c_bus_handle_t *handle, uint8_t byte);
+	
+	i2c_bus_status_t (*master_trans)(i2c_bus_handle_t *handle, uint8_t dev_addr, 
+		const uint8_t *tx_buf, uint16_t tx_len, uint8_t *rx_buf, uint16_t rx_len);
 	
 	i2c_bus_status_t (*read_byte)(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *byte);
 	i2c_bus_status_t (*write_byte)(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t byte);
@@ -63,6 +69,20 @@ static inline i2c_bus_status_t i2c_deinit(i2c_bus_handle_t *handle) {
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	return handle->ops->deinit(handle);
+}
+
+static inline i2c_bus_status_t i2c_lock(i2c_bus_handle_t *handle) {
+	if (handle == NULL || handle->ops == NULL || handle->ops->lock == NULL) {
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	return handle->ops->lock(handle);
+}
+
+static inline i2c_bus_status_t i2c_unlock(i2c_bus_handle_t *handle) {
+	if (handle == NULL || handle->ops == NULL || handle->ops->unlock == NULL) {
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	return handle->ops->unlock(handle);
 }
 
 static inline i2c_bus_status_t i2c_start(i2c_bus_handle_t *handle) {
@@ -91,6 +111,14 @@ static inline i2c_bus_status_t i2c_send_byte(i2c_bus_handle_t *handle, uint8_t b
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
 	return handle->ops->send_byte(handle, byte);
+}
+
+static inline i2c_bus_status_t i2c_master_trans(i2c_bus_handle_t *handle, uint8_t dev_addr, 
+	const uint8_t *tx_buf, uint16_t tx_len, uint8_t *rx_buf, uint16_t rx_len) {
+	if (handle == NULL || handle->ops == NULL || handle->ops->master_trans == NULL) {
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	return handle->ops->master_trans(handle, dev_addr, tx_buf, tx_len, rx_buf, rx_len);
 }
 
 static inline i2c_bus_status_t i2c_read_byte(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *byte) {

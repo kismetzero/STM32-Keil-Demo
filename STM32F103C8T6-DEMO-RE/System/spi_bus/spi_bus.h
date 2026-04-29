@@ -57,6 +57,10 @@ struct spi_bus_handle_s {
 struct spi_bus_ops_s {
 	spi_bus_status_t (*init)(spi_bus_handle_t *handle);
 	spi_bus_status_t (*deinit)(spi_bus_handle_t *handle);
+	
+	spi_bus_status_t (*lock)(spi_bus_handle_t *handle);
+	spi_bus_status_t (*unlock)(spi_bus_handle_t *handle);
+	
 	spi_bus_status_t (*read_byte)(spi_bus_handle_t *handle, uint8_t *byte);
 	spi_bus_status_t (*write_byte)(spi_bus_handle_t *handle, uint8_t byte);
 	spi_bus_status_t (*switch_byte)(spi_bus_handle_t *handle, uint8_t tx, uint8_t *rx);
@@ -103,6 +107,20 @@ static inline spi_bus_status_t spi_bus_deinit(spi_dev_handle_t *handle) {
         return SPI_BUS_STATUS_ERR_INVALID_PARAM;
     }
     return handle->bus->ops->deinit(handle->bus);
+}
+
+static inline spi_bus_status_t spi_bus_lock(spi_dev_handle_t *handle) {
+	if (handle == NULL || handle->bus == NULL || handle->bus->ops == NULL || handle->bus->ops->lock == NULL) {
+        return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+    }
+    return handle->bus->ops->lock(handle->bus);
+}
+
+static inline spi_bus_status_t spi_bus_unlock(spi_dev_handle_t *handle) {
+	if (handle == NULL || handle->bus == NULL || handle->bus->ops == NULL || handle->bus->ops->unlock == NULL) {
+        return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+    }
+    return handle->bus->ops->unlock(handle->bus);
 }
 
 static inline spi_bus_status_t spi_read_byte(spi_dev_handle_t *handle, uint8_t *byte) {

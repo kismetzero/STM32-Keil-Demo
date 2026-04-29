@@ -23,7 +23,7 @@ spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi
 typedef struct {
 	#if SYS_EN_FREERTOS
 		SemaphoreHandle_t mutex_lock;
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	GPIO_TypeDef*	sck_gpio_port;
 	GPIO_TypeDef*	mosi_gpio_port;
 	GPIO_TypeDef*	miso_gpio_port;
@@ -42,7 +42,7 @@ spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, sp
 typedef struct {
 	#if SYS_EN_FREERTOS
 		SemaphoreHandle_t mutex_lock;
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	SPI_TypeDef*	spi_periph;
 	GPIO_TypeDef*	spi_gpio_port;
 	uint32_t		spi_clk;

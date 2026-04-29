@@ -4,7 +4,7 @@
 #define LOG_TAG "i2c_impl"
 #include "elog.h"
 
-#define I2C_BUS_FAST 1
+#define I2C_BUS_FAST 0
 
 //=====================================================================================================
 // I2C SW BUS OOP
@@ -121,16 +121,15 @@ __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_send_byte(i2c_bus_stm32_st
 	return I2C_BUS_STATUS_OK;
 }
 
-static i2c_bus_status_t i2c_bus_stm32_std_sw_protocol_transfer(i2c_bus_stm32_std_sw_config_t *cfg, uint8_t dev_addr, 
-																const uint8_t *tx_buf, uint16_t tx_len,
-																uint8_t *rx_buf, uint16_t rx_len) {
+static i2c_bus_status_t i2c_bus_stm32_std_sw_master_trans(i2c_bus_stm32_std_sw_config_t *cfg, uint8_t dev_addr, 
+	const uint8_t *tx_buf, uint16_t tx_len, uint8_t *rx_buf, uint16_t rx_len) {
 	if (tx_len == 0 && rx_len == 0) { return I2C_BUS_STATUS_ERR_INVALID_PARAM; }
 	#if SYS_EN_FREERTOS
 		if (xSemaphoreTakeRecursive(cfg->mutex_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
 			log_w("mutex_lock timeout");
 			return I2C_BUS_STATUS_ERR_BUSY;
 		}
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	i2c_bus_status_t ret = I2C_BUS_STATUS_OK;
 	if (tx_len > 0) {
 		// 发送起始信号
@@ -175,7 +174,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_protocol_transfer(i2c_bus_stm32_std
 	exit:
 	#if SYS_EN_FREERTOS
 		xSemaphoreGiveRecursive(cfg->mutex_lock);
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	return ret;
 }
 
@@ -202,7 +201,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_init(i2c_bus_handle_t *handle) 
 				return I2C_BUS_STATUS_ERR;
 			}
 		}
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	// 使能 GPIO 总线时钟
 	RCC_APB2PeriphClockCmd(cfg->scl_gpio_clk | cfg->sda_gpio_clk, ENABLE);
 	// GPIO 初始化
@@ -243,8 +242,55 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_deinit(i2c_bus_handle_t *handle
 			vSemaphoreDelete(cfg->mutex_lock);
             cfg->mutex_lock = NULL;
 		}
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	cfg->inited = 0;
+	return I2C_BUS_STATUS_OK;
+}
+
+static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_lock(i2c_bus_handle_t *handle) {
+	#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* I2C_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	#if SYS_EN_FREERTOS
+		if (xSemaphoreTakeRecursive(cfg->mutex_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+			log_w("mutex_lock timeout");
+			return I2C_BUS_STATUS_ERR_BUSY;
+		}
+	#endif /* SYS_EN_FREERTOS */
+	return I2C_BUS_STATUS_OK;
+}
+
+static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_unlock(i2c_bus_handle_t *handle) {
+	#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* I2C_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return I2C_BUS_STATUS_ERR_NO_INIT;
+	}
+	#if SYS_EN_FREERTOS
+		xSemaphoreGiveRecursive(cfg->mutex_lock);
+	#endif /* SYS_EN_FREERTOS */
 	return I2C_BUS_STATUS_OK;
 }
 
@@ -366,6 +412,34 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_byte(i2c_bus_handle_t *han
 	return i2c_bus_stm32_std_sw_send_byte(cfg, byte);
 }
 
+static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_master_trans(i2c_bus_handle_t *handle, uint8_t dev_addr, 
+	const uint8_t *tx_buf, uint16_t tx_len, uint8_t *rx_buf, uint16_t rx_len) {
+	#if I2C_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* I2C_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	i2c_bus_stm32_std_sw_config_t *cfg = (i2c_bus_stm32_std_sw_config_t *)handle->user_data;
+	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_master_trans(cfg, dev_addr, tx_buf, tx_len, rx_buf, rx_len);
+	if (ret != I2C_BUS_STATUS_OK) {
+		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
+			log_e("bus busy (code: %d)", ret);
+		} else if (ret == I2C_BUS_STATUS_ERR_DEV_NONE) {
+			log_e("dev(0x%02X) not find (code: %d)", dev_addr, ret);
+		} else if (ret == I2C_BUS_STATUS_ERR_NACK) {
+			log_w("dev(0x%02X) write data fail (code: %d)", dev_addr, ret);
+		} else {
+			log_e("unknown erro (code: %d)", ret);
+		}
+	}
+	return ret;
+}
+
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len) {
 	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
@@ -390,7 +464,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *ha
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_protocol_transfer(cfg, dev_addr, NULL, 0, data, len);
+	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_master_trans(cfg, dev_addr, NULL, 0, data, len);
 	if (ret != I2C_BUS_STATUS_OK) {
 		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
 			log_e("bus busy (code: %d)", ret);
@@ -427,7 +501,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_bytes(i2c_bus_handle_t *h
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_protocol_transfer(cfg, dev_addr, data, len, NULL, 0);
+	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_master_trans(cfg, dev_addr, data, len, NULL, 0);
 	if (ret != I2C_BUS_STATUS_OK) {
 		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
 			log_e("bus busy (code: %d)", ret);
@@ -474,7 +548,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_regs(i2c_bus_handle_t *han
 		log_e("len == 0");
 		return I2C_BUS_STATUS_ERR_INVALID_PARAM;
 	}
-	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_protocol_transfer(cfg, dev_addr, &reg_addr, 1, data, len);
+	i2c_bus_status_t ret = i2c_bus_stm32_std_sw_master_trans(cfg, dev_addr, &reg_addr, 1, data, len);
 	if (ret != I2C_BUS_STATUS_OK) {
 		if (ret == I2C_BUS_STATUS_ERR_BUSY) {
 			log_e("bus busy (code: %d)", ret);
@@ -579,16 +653,24 @@ __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_reg(i2c_bus_hand
 static const i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.init = i2c_bus_stm32_std_sw_i2c_init,
 	.deinit = i2c_bus_stm32_std_sw_i2c_deinit,
+	
+	.lock = i2c_bus_stm32_std_sw_i2c_lock,
+	.unlock = i2c_bus_stm32_std_sw_i2c_unlock,
+	
 	.start = i2c_bus_stm32_std_sw_i2c_start,
 	.stop = i2c_bus_stm32_std_sw_i2c_stop,
 	.send_ack = i2c_bus_stm32_std_sw_i2c_send_ack,
 	.wait_ack = i2c_bus_stm32_std_sw_i2c_wait_ack,
 	.recv_byte = i2c_bus_stm32_std_sw_i2c_recv_byte,
 	.send_byte = i2c_bus_stm32_std_sw_i2c_send_byte,
+	
+	.master_trans = i2c_bus_stm32_std_sw_i2c_master_trans,
+	
 	.read_byte = i2c_bus_stm32_std_sw_i2c_read_byte,
 	.write_byte = i2c_bus_stm32_std_sw_i2c_write_byte,
 	.read_bytes = i2c_bus_stm32_std_sw_i2c_read_bytes,
 	.write_bytes = i2c_bus_stm32_std_sw_i2c_write_bytes,
+	
 	.read_reg = i2c_bus_stm32_std_sw_i2c_read_reg,
 	.write_reg = i2c_bus_stm32_std_sw_i2c_write_reg,
 	.read_regs = i2c_bus_stm32_std_sw_i2c_read_regs,

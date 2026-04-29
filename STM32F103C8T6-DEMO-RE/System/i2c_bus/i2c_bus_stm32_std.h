@@ -14,7 +14,7 @@
 typedef struct {
 	#if SYS_EN_FREERTOS
 		SemaphoreHandle_t mutex_lock;
-	#endif /* SYS_EN_OS */
+	#endif /* SYS_EN_FREERTOS */
 	GPIO_TypeDef*	scl_gpio_port;
 	GPIO_TypeDef*	sda_gpio_port;
 	uint32_t		scl_gpio_clk;
