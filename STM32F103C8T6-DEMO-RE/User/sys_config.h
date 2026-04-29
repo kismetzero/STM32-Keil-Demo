@@ -7,15 +7,15 @@
 #define SYS_EN_SPI				1
 #define SYS_EN_RTC				1
 #define SYS_EN_FLASH			1
-#define SYS_EN_TH_SENSOR		1
-#define SYS_EN_DISP			0
+#define SYS_EN_TH_SENSOR		0
+#define SYS_EN_DISP				1
 
 #if SYS_EN_OS
-	#define SYS_EN_FREERTOS				1
+	#define SYS_EN_FREERTOS			1
 #endif /* SYS_EN_OS */
 
 #if SYS_EN_SERIAL
-	#define SYS_EN_EASYLOGGER				1
+	#define SYS_EN_EASYLOGGER		1
 #endif /* SYS_EN_SERIAL */
 
 #if SYS_EN_I2C
@@ -24,7 +24,7 @@
 
 #if SYS_EN_SPI
 	#define SYS_EN_SPI_BUS_STM32_STD		1
-	#define SYS_EN_SPI_BUS_STM32_STD_HW	1
+	#define SYS_EN_SPI_BUS_STM32_STD_HW		1
 #endif /* SYS_EN_SPI */
 
 #if SYS_EN_RTC
@@ -41,8 +41,8 @@
 #endif /* SYS_EN_TH_SENSOR */
 
 #if SYS_EN_DISP
-	#define SYS_EN_MAX7219				1
-	#define SYS_EN_SSD1306				1
+	#define SYS_EN_MAX7219			1
+	#define SYS_EN_SSD1306			0
 #endif /* SYS_EN_DISP */
 
 #ifdef __cplusplus

@@ -1,4 +1,5 @@
 #include "W25QX.h"
+
 #include "spi_bus.h"
 
 #define LOG_TAG "W25QX"

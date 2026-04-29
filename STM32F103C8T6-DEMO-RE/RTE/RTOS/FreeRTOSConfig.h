@@ -330,7 +330,7 @@ extern uint32_t SystemCoreClock;
  * the .bss section.  See https://www.freertos.org/a00111.html. */
 //#define configTOTAL_HEAP_SIZE                        4096
 // FreeRTOS总堆大小，C8T6建议不超过15KB
-#define configTOTAL_HEAP_SIZE		((size_t)(10*1024))
+#define configTOTAL_HEAP_SIZE		((size_t)(4*1024))
 
 
 

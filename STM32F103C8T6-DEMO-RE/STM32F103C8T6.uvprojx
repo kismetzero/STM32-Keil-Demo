@@ -440,14 +440,14 @@
               <FilePath>.\System\i2c_bus\i2c_bus.h</FilePath>
             </File>
             <File>
-              <FileName>i2c_bus_stm32_std.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std.c</FilePath>
-            </File>
-            <File>
               <FileName>i2c_bus_stm32_std.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\i2c_bus\i2c_bus_stm32_std.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_bus_stm32_std.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\i2c_bus\i2c_bus_stm32_std.c</FilePath>
             </File>
             <File>
               <FileName>spi_bus.h</FileName>
@@ -455,14 +455,14 @@
               <FilePath>.\System\spi_bus\spi_bus.h</FilePath>
             </File>
             <File>
-              <FileName>spi_bus_stm32_std.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\System\spi_bus\spi_bus_stm32_std.c</FilePath>
-            </File>
-            <File>
               <FileName>spi_bus_stm32_std.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\spi_bus\spi_bus_stm32_std.h</FilePath>
+            </File>
+            <File>
+              <FileName>spi_bus_stm32_std.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\System\spi_bus\spi_bus_stm32_std.c</FilePath>
             </File>
             <File>
               <FileName>Serial.h</FileName>
@@ -520,14 +520,14 @@
               <FilePath>.\Hardware\DS3231\DS3231_i2c_bus.c</FilePath>
             </File>
             <File>
-              <FileName>WS2812.h</FileName>
+              <FileName>MAX7219.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\WS2812\WS2812.h</FilePath>
+              <FilePath>.\Hardware\MAX7219\MAX7219.h</FilePath>
             </File>
             <File>
-              <FileName>WS2812_stm32_std_lib.c</FileName>
+              <FileName>MAX7219_spi_bus.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\WS2812\WS2812_stm32_std_lib.c</FilePath>
+              <FilePath>.\Hardware\MAX7219\MAX7219_spi_bus.c</FilePath>
             </File>
           </Files>
         </Group>

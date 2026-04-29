@@ -39,14 +39,30 @@
 #endif /* SYS_SHT40 */
 
 #if (SYS_EN_MAX7219 == 1) && (defined(SYS_USE_MAX7219) || defined(SYS_USE_ALL_EN))
+	#include "MAX7219.h"
 #endif /* SYS_MAX7219 */
 
 #if (SYS_EN_SSD1306 == 1) && (defined(SYS_USE_SSD1306) || defined(SYS_USE_ALL_EN))
+	#include "SSD1306.h"
 #endif /* SYS_SSD1306 */
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
+
+typedef union {
+	uint8_t all;
+	struct {
+		uint8_t log_init			: 1;
+		uint8_t serial_init			: 1;
+		uint8_t i2c_init			: 1;
+		uint8_t spi_init			: 1;
+		uint8_t rtc_init			: 1;
+		uint8_t flash_init			: 1;
+		uint8_t th_sensor_init		: 1;
+		uint8_t disp_init			: 1;
+	} bit;
+} sys_init_status_t;
 
 #ifdef __cplusplus
 }

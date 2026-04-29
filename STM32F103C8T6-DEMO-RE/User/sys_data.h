@@ -7,6 +7,8 @@
 	extern "C" {
 #endif
 
+extern sys_init_status_t sys_init_status;
+
 #if (SYS_EN_I2C_BUS_STM32_STD == 1) && (defined(SYS_USE_I2C_BUS_STM32_STD) || defined(SYS_USE_ALL_EN))
 	extern i2c_bus_handle_t i2c_handle;
 #endif /* SYS_I2C_BUS_STM32_STD */
@@ -33,9 +35,11 @@
 #endif /* SYS_SHT40 */
 
 #if (SYS_EN_MAX7219 == 1) && (defined(SYS_USE_MAX7219) || defined(SYS_USE_ALL_EN))
+	extern MAX7219_Handle_t max7219_handle;
 #endif /* SYS_MAX7219 */
 
 #if (SYS_EN_SSD1306 == 1) && (defined(SYS_USE_SSD1306) || defined(SYS_USE_ALL_EN))
+	extern SSD1306_Handle_t ssd1306_handle;
 #endif /* SYS_SSD1306 */
 
 #if (SYS_EN_RTC == 1) && (defined(SYS_USE_RTC) || defined(SYS_USE_ALL_EN))

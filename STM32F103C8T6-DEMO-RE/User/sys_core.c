@@ -4,11 +4,12 @@
 #include "sys_inc.h"
 
 #include "delay.h"
-
 #include <stdio.h>
 
 #define LOG_TAG "sys"
 #include "elog.h"
+
+sys_init_status_t sys_init_status;
 
 #if SYS_EN_EASYLOGGER
 //	void my_elog_assert_hook(const char* expr, const char* func, size_t line){
@@ -93,10 +94,28 @@
 	SHT40_Handle_t sht40_handle;
 #endif /* SYS_EN_SHT40 */
 	
+#if SYS_EN_MAX7219
+	MAX7219_Handle_t max7219_handle;
+	static spi_cs_handle_t max7219_cs_handle;
+	static spi_bus_stm32_std_cs_config_t max7219_cs_cfg = {
+		.cs_gpio_clk	= RCC_APB2Periph_GPIOB,
+		.cs_gpio_pin	= GPIO_Pin_0,
+		.cs_gpio_port	= GPIOB,
+	};
+	static spi_dev_handle_t max7219_spi_handle = {
+		.bus	= &spi_bus_handle,
+		.cs		= &max7219_cs_handle,
+	};
+#endif /* SYS_EN_MAX7219 */
+	
+#if SYS_EN_SSD1306
+	SSD1306_Handle_t ssd1306_handle;
+#endif /* SYS_EN_SSD1306 */
+	
 #if SYS_EN_FREERTOS
 //	static SemaphoreHandle_t mutex_lock;
 	
-	#define SYS_EN_FREERTOS_TEST 1
+	#define SYS_EN_FREERTOS_TEST 0
 
 	#if SYS_EN_FREERTOS_TEST
 		TaskHandle_t test_xTaskHandle;
@@ -158,12 +177,15 @@ void sys_core_init() {
 //		elog_assert_set_hook(my_elog_assert_hook);
 		/* start EasyLogger */
 		elog_start();
+		sys_init_status.bit.log_init = 1;
 	#endif /* SYS_EN_EASYLOGGER */
 	
 	#if SYS_EN_I2C_BUS_STM32_STD
 		ret = i2c_bus_stm32_std_sw_create_handle(&i2c_handle, &swi2c_cfg);
 		if	(ret != I2C_BUS_STATUS_OK) {
 			log_e("i2c init fail (code: %d)", ret);
+		} else {
+			sys_init_status.bit.i2c_init = 1;
 		}
 	#endif /* SYS_EN_I2C_BUS_STM32_STD */
 
@@ -175,48 +197,91 @@ void sys_core_init() {
 		#endif /* SYS_EN_SPI_BUS_STM32_STD_HW */
 		if	(ret != SPI_BUS_STATUS_OK) {
 			log_e("spi bus init fail (code: %d)", ret);
+		} else {
+			sys_init_status.bit.spi_init = 1;
 		}
 	#endif /* SYS_EN_SPI_BUS_STM32_STD */
 
 	#if SYS_EN_DS3231
-		ret = DS3231_Init(&ds3231_handle, &i2c_handle, 0);
-		if	(ret != DS3231_STATUS_OK) {
-			log_e("DS3231 init fail (code: %d)", ret);
+		if (sys_init_status.bit.i2c_init == 1) {
+			ret = DS3231_Init(&ds3231_handle, &i2c_handle, 0);
+			if	(ret != DS3231_STATUS_OK) {
+				log_e("DS3231 init fail (code: %d)", ret);
+			} else {
+				sys_init_status.bit.rtc_init = 1;
+			}
 		}
 	#endif /* SYS_EN_DS3231 */
 
 	#if SYS_EN_W25QX
-		ret = spi_bus_stm32_std_cs_create_handle(&w25qx_cs_handle, &w25qx_cs_cfg);
-		if	(ret != SPI_BUS_STATUS_OK) {
-			log_e("W25QX cs init fail (code: %d)", ret);
-		}
-		ret = W25QX_Init(&w25qx_handle, &w25qx_spi_handle);
-		if	(ret != W25QX_STATUS_OK) {
-			log_e("W25QX init fail (code: %d)", ret);
+		if (sys_init_status.bit.spi_init == 1) {
+			ret = spi_bus_stm32_std_cs_create_handle(&w25qx_cs_handle, &w25qx_cs_cfg);
+			if	(ret != SPI_BUS_STATUS_OK) {
+				log_e("W25QX cs init fail (code: %d)", ret);
+			} else {
+				ret = W25QX_Init(&w25qx_handle, &w25qx_spi_handle);
+				if	(ret != W25QX_STATUS_OK) {
+					log_e("W25QX init fail (code: %d)", ret);
+				} else {
+					sys_init_status.bit.flash_init = 1;
+				}
+			}
 		}
 	#endif /* SYS_EN_W25QX */
 
 	#if SYS_EN_AHT20
-		ret = AHT20_Init(&aht20_handle, &i2c_handle, 0);
-		if	(ret != AHT20_STATUS_OK) {
-			log_e("AHT20 init fail (code: %d)", ret);
+		if (sys_init_status.bit.i2c_init == 1) {
+			ret = AHT20_Init(&aht20_handle, &i2c_handle, 0);
+			if	(ret != AHT20_STATUS_OK) {
+				log_e("AHT20 init fail (code: %d)", ret);
+			} else {
+				sys_init_status.bit.th_sensor_init = 1;
+			}
 		}
 	#endif /* SYS_EN_AHT20 */
 
 	#if SYS_EN_SHT40
-		ret = SHT40_Init(&sht40_handle, &i2c_handle, 0, 0);
-		if	(ret != SHT40_STATUS_OK) {
-			log_e("SHT40 init fail (code: %d)", ret);
+		if (sys_init_status.bit.i2c_init == 1) {
+			ret = SHT40_Init(&sht40_handle, &i2c_handle, 0, 0);
+			if	(ret != SHT40_STATUS_OK) {
+				log_e("SHT40 init fail (code: %d)", ret);
+			} else {
+				sys_init_status.bit.th_sensor_init = 1;
+			}
 		}
 	#endif /* SYS_EN_SHT40 */
+		
+	#if SYS_EN_MAX7219
+		if (sys_init_status.bit.spi_init == 1) {
+			ret = spi_bus_stm32_std_cs_create_handle(&max7219_cs_handle, &max7219_cs_cfg);
+			if	(ret != SPI_BUS_STATUS_OK) {
+				log_e("MAX7219 cs init fail (code: %d)", ret);
+			} else {
+				ret = MAX7219_Init(&max7219_handle, &max7219_spi_handle, 4);
+				if	(ret != MAX7219_STATUS_OK) {
+					log_e("MAX7219 init fail (code: %d)", ret);
+				} else {
+					sys_init_status.bit.disp_init = 1;
+				}
+			}
+		}
+		for (uint8_t i = 0; i < 32; i++) {
+			max7219_handle.data[i] = i+1;
+		}
+		MAX7219_Refresh(&max7219_handle);
+	#endif /* SYS_EN_MAX7219 */
+		
+	#if SYS_EN_SSD1306
+	#endif /* SYS_EN_SSD1306 */
 		
 	#if SYS_EN_FREERTOS
 //		mutex_lock = xSemaphoreCreateMutex();
 //		if (mutex_lock == NULL) {
 //			log_e("mutex_lock create fale");
 //		}
-
-		xTaskCreate(SyncTime_vTask, "SyncTimeTask", 140, NULL, 1, &SyncTime_xTaskHandle);
+		if (sys_init_status.bit.rtc_init == 1) {
+			xTaskCreate(SyncTime_vTask, "SyncTimeTask", 140, NULL, 1, &SyncTime_xTaskHandle);
+		}
 		
 		#if SYS_EN_FREERTOS_TEST
 			xTaskCreate(test_vTask, "testTask", 190, NULL, 1, &test_xTaskHandle);
