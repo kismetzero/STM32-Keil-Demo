@@ -88,10 +88,14 @@ SHT40_Status_t SHT40_Reset(SHT40_Handle_t *handle) {
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
-		return SHT40_STATUS_ERR_I2C_ERR;
+		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	i2c_bus_status_t i2c_ret;
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_ResetCommand);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, &SHT40_ResetCommand, 1, NULL, 0);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
@@ -110,17 +114,25 @@ SHT40_Status_t SHT40_Measure(SHT40_Handle_t *handle) {
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
-		return SHT40_STATUS_ERR_I2C_ERR;
+		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
-	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_MeasureCommand[handle->repeatability]);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, &SHT40_MeasureCommand[handle->repeatability], 1, NULL, 0);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(SHT40_MeasureDelay[handle->repeatability]);
+	uint8_t raw_data[6];
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, NULL, 0, raw_data, 6);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
@@ -156,21 +168,29 @@ SHT40_Status_t SHT40_HeaterMeasure(SHT40_Handle_t *handle, SHT40_Heater_t heater
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
-		return SHT40_STATUS_ERR_I2C_ERR;
+		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
 	if (heater < SHT40_HEATER_200MW1S || heater > SHT40_HEATER_20MW100MS) {
 		log_e("heater invalid");
 		return SHT40_STATUS_ERR_INVALID_PARAM;
 	}
-	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, SHT40_HeaterMeasureCommand[heater]);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, &SHT40_HeaterMeasureCommand[heater], 1, NULL, 0);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(SHT40_HeaterMeasureDelay[(heater % 2)]);
+	uint8_t raw_data[6];
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, NULL, 0, raw_data, 6);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return SHT40_STATUS_ERR_I2C_ERR;

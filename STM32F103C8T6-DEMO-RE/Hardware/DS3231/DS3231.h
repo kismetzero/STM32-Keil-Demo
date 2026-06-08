@@ -216,18 +216,18 @@ DS3231_Status_t DS3231_SetDate(DS3231_Handle_t *handle, DS3231_DateTime_t *dt);
  * @param val BCD 格式的值
  * @return 十进制整数值
  */
-static inline uint8_t DS3231_BCD2DEC(uint8_t val) {
-    return ((val >> 4) * 10) + (val & 0x0F);
-}
+//static inline uint8_t DS3231_BCD2DEC(uint8_t val) {
+//    return ((val >> 4) * 10) + (val & 0x0F);
+//}
 
 /**
  * @brief 将十进制整数转换为 BCD 码
  * @param val 十进制整数值 (0-99)
  * @return BCD 格式的值
  */
-static inline uint8_t DS3231_DEC2BCD(uint8_t val) {
-    return ((val / 10) << 4) | (val % 10);
-}
+//static inline uint8_t DS3231_DEC2BCD(uint8_t val) {
+//    return ((val / 10) << 4) | (val % 10);
+//}
 
 #ifdef __cplusplus
 }

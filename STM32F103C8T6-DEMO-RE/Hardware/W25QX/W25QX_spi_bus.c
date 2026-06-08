@@ -34,7 +34,7 @@ W25QX_Status_t W25QX_Reset(W25QX_Handle_t *handle) {
 	}
 	if (handle->hspi == NULL) {
 		log_e("hspi == NULL");
-		return W25QX_STATUS_ERR_SPI_ERR;
+		return W25QX_STATUS_ERR_INVALID_PARAM;
 	}
 	return W25QX_STATUS_OK;
 }
@@ -50,7 +50,7 @@ W25QX_Status_t W25QX_ReadID(W25QX_Handle_t *handle) {
 	}
 	if (handle->hspi == NULL) {
 		log_e("hspi == NULL");
-		return W25QX_STATUS_ERR_SPI_ERR;
+		return W25QX_STATUS_ERR_INVALID_PARAM;
 	}
 	uint8_t raw_data[3];
 	spi_bus_status_t ret;

@@ -115,7 +115,7 @@ sys_init_status_t sys_init_status;
 #if SYS_EN_FREERTOS
 //	static SemaphoreHandle_t mutex_lock;
 	
-	#define SYS_EN_FREERTOS_TEST 0
+	#define SYS_EN_FREERTOS_TEST 1
 
 	#if SYS_EN_FREERTOS_TEST
 		TaskHandle_t test_xTaskHandle;
@@ -123,8 +123,9 @@ sys_init_status_t sys_init_status;
 			UBaseType_t uxHighWaterMark;
 			for(;;) {
 //				xSemaphoreTake(mutex_lock, portMAX_DELAY);
-//				AHT20_Measure(&aht20_handle);
+				AHT20_Measure(&aht20_handle);
 				W25QX_ReadID(&w25qx_handle);
+				SHT40_Measure(&sht40_handle);
 //				xSemaphoreGive(mutex_lock);
 				uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 				log_d("test Task Stack Left: %d words (%d bytes)", uxHighWaterMark, uxHighWaterMark * 4);
@@ -168,15 +169,16 @@ void sys_core_init() {
 		ret = elog_init();
 		if (ret != ELOG_NO_ERR) { while(1) { __NOP(); } }
 		/* set EasyLogger log format */
-		elog_set_fmt(ELOG_LVL_ASSERT, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
-		elog_set_fmt(ELOG_LVL_ERROR, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
-		elog_set_fmt(ELOG_LVL_WARN, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
-		elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
-		elog_set_fmt(ELOG_LVL_DEBUG, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
-		elog_set_fmt(ELOG_LVL_VERBOSE, ELOG_FMT_ALL & ~(ELOG_FMT_T_INFO | ELOG_FMT_P_INFO));
+		elog_set_fmt(ELOG_LVL_ASSERT, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_ERROR, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_WARN, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
+		elog_set_fmt(ELOG_LVL_DEBUG, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_VERBOSE, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
 //		elog_assert_set_hook(my_elog_assert_hook);
 		/* start EasyLogger */
 		elog_start();
+		sys_init_status.bit.serial_init = 1;
 		sys_init_status.bit.log_init = 1;
 	#endif /* SYS_EN_EASYLOGGER */
 	
@@ -264,11 +266,11 @@ void sys_core_init() {
 					sys_init_status.bit.disp_init = 1;
 				}
 			}
+			for (uint8_t i = 0; i < 32; i++) {
+				max7219_handle.LEDarr[i] = i+1;
+			}
+			MAX7219_WriteData(&max7219_handle, max7219_handle.LEDarr, 32);
 		}
-		for (uint8_t i = 0; i < 32; i++) {
-			max7219_handle.data[i] = i+1;
-		}
-		MAX7219_Refresh(&max7219_handle);
 	#endif /* SYS_EN_MAX7219 */
 		
 	#if SYS_EN_SSD1306
@@ -284,7 +286,7 @@ void sys_core_init() {
 		}
 		
 		#if SYS_EN_FREERTOS_TEST
-			xTaskCreate(test_vTask, "testTask", 190, NULL, 1, &test_xTaskHandle);
+			xTaskCreate(test_vTask, "testTask", 512, NULL, 1, &test_xTaskHandle);
 		#endif /* SYS_EN_FREERTOS_TEST */
 	#endif /* SYS_EN_FREERTOS */
 

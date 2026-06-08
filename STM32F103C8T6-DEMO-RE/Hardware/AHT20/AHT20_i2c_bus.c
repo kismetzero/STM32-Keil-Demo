@@ -44,32 +44,33 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *handle, void *hi2c, uint8_t i2c_addr) 
 		i2c_addr = AHT20_DEFAULT_I2C_ADDR;
 	}
 	handle->i2c_addr = i2c_addr;
-	
-	uint8_t raw_data[6];
-	i2c_bus_status_t i2c_ret;
-	
 	delay_ms(50); // 上电后稍微延时，确保传感器就绪
-	
+	i2c_bus_status_t i2c_ret;
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_write_bytes(handle->hi2c, handle->i2c_addr, AHT20_InitCommand, 3);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, AHT20_InitCommand, 3, NULL, 0);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
-	
 	delay_ms(50);
-	
+	uint8_t raw_data[6];
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, NULL, 0, raw_data, 6);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
-	
 	// 检查校准位
 	if (!(raw_data[0] & (1 << 3))) {
 		log_e("not calibrated (bit 3 is 0)");
 		return AHT20_STATUS_ERR_CAL;
 	}
-	
 	float temperature = AHT20_CalcTemperature(raw_data);
 	float humidity = AHT20_CalcHumidity(raw_data);
 	if (humidity < 0) {
@@ -82,7 +83,6 @@ AHT20_Status_t AHT20_Init(AHT20_Handle_t *handle, void *hi2c, uint8_t i2c_addr) 
 	handle->temperature = temperature;
 	handle->humidity = humidity;
 	log_d("temperature=%f humidity=%f", temperature, humidity);
-	
 	handle->inited = 1;
 	return AHT20_STATUS_OK;
 }
@@ -98,10 +98,14 @@ AHT20_Status_t AHT20_Reset(AHT20_Handle_t *handle) {
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
-		return AHT20_STATUS_ERR_I2C_ERR;
+		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
 	i2c_bus_status_t i2c_ret;
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_write_byte(handle->hi2c, handle->i2c_addr, AHT20_ResetCommand);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, &AHT20_ResetCommand, 1, NULL, 0);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
@@ -120,17 +124,25 @@ AHT20_Status_t AHT20_Measure(AHT20_Handle_t *handle) {
 	}
 	if (handle->hi2c == NULL) {
 		log_e("hi2c == NULL");
-		return AHT20_STATUS_ERR_I2C_ERR;
+		return AHT20_STATUS_ERR_INVALID_PARAM;
 	}
-	uint8_t raw_data[6];
 	i2c_bus_status_t i2c_ret;
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_write_bytes(handle->hi2c, handle->i2c_addr, AHT20_MeasureCommand, 3);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, AHT20_MeasureCommand, 3, NULL, 0);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c write fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
 	}
 	delay_ms(80);
+	uint8_t raw_data[6];
+#if I2C_BUS_SIMP <= 2 || !defined(I2C_BUS_SIMP)
 	i2c_ret = i2c_read_bytes(handle->hi2c, handle->i2c_addr, raw_data, 6);
+#else /* I2C_BUS_SIMP */
+	i2c_ret = i2c_master_trans(handle->hi2c, handle->i2c_addr, NULL, 0, raw_data, 6);
+#endif /* I2C_BUS_SIMP */
 	if (i2c_ret != I2C_BUS_STATUS_OK) {
 		log_e("i2c read fail (code: %d)", i2c_ret);
 		return AHT20_STATUS_ERR_I2C_ERR;
