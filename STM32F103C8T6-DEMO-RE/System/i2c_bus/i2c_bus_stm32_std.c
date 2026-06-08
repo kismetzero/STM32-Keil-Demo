@@ -247,6 +247,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_deinit(i2c_bus_handle_t *handle
 	return I2C_BUS_STATUS_OK;
 }
 
+#if I2C_BUS_SIMP == 0 || !defined(I2C_BUS_SIMP)
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_lock(i2c_bus_handle_t *handle) {
 	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
@@ -411,6 +412,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_send_byte(i2c_bus_handle_t *han
 	}
 	return i2c_bus_stm32_std_sw_send_byte(cfg, byte);
 }
+#endif /* I2C_BUS_SIMP */
 
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_master_trans(i2c_bus_handle_t *handle, uint8_t dev_addr, 
 	const uint8_t *tx_buf, uint16_t tx_len, uint8_t *rx_buf, uint16_t rx_len) {
@@ -440,6 +442,7 @@ static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_master_trans(i2c_bus_handle_t *
 	return ret;
 }
 
+#if I2C_BUS_SIMP <= 1 || !defined(I2C_BUS_SIMP)
 static i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_bytes(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t *data, uint16_t len) {
 	#if I2C_BUS_FAST == 0
 	if (handle == NULL) {
@@ -649,11 +652,13 @@ __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_read_reg(i2c_bus_handl
 __STATIC_INLINE i2c_bus_status_t i2c_bus_stm32_std_sw_i2c_write_reg(i2c_bus_handle_t *handle, uint8_t dev_addr, uint8_t reg_addr, uint8_t byte) {
 	return i2c_bus_stm32_std_sw_i2c_write_regs(handle, dev_addr, reg_addr, &byte, 1);
 }
+#endif /* I2C_BUS_SIMP */
 
 static const i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.init = i2c_bus_stm32_std_sw_i2c_init,
 	.deinit = i2c_bus_stm32_std_sw_i2c_deinit,
-	
+
+#if I2C_BUS_SIMP == 0 || !defined(I2C_BUS_SIMP)
 	.lock = i2c_bus_stm32_std_sw_i2c_lock,
 	.unlock = i2c_bus_stm32_std_sw_i2c_unlock,
 	
@@ -663,9 +668,11 @@ static const i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.wait_ack = i2c_bus_stm32_std_sw_i2c_wait_ack,
 	.recv_byte = i2c_bus_stm32_std_sw_i2c_recv_byte,
 	.send_byte = i2c_bus_stm32_std_sw_i2c_send_byte,
+#endif /* I2C_BUS_SIMP */
 	
 	.master_trans = i2c_bus_stm32_std_sw_i2c_master_trans,
-	
+
+#if I2C_BUS_SIMP <= 1 || !defined(I2C_BUS_SIMP)
 	.read_byte = i2c_bus_stm32_std_sw_i2c_read_byte,
 	.write_byte = i2c_bus_stm32_std_sw_i2c_write_byte,
 	.read_bytes = i2c_bus_stm32_std_sw_i2c_read_bytes,
@@ -675,6 +682,7 @@ static const i2c_bus_ops_t i2c_bus_stm32_std_sw_ops = {
 	.write_reg = i2c_bus_stm32_std_sw_i2c_write_reg,
 	.read_regs = i2c_bus_stm32_std_sw_i2c_read_regs,
 	.write_regs = i2c_bus_stm32_std_sw_i2c_write_regs,
+#endif /* I2C_BUS_SIMP */
 };
 
 i2c_bus_status_t i2c_bus_stm32_std_sw_create_handle(i2c_bus_handle_t *handle, i2c_bus_stm32_std_sw_config_t *cfg) {
