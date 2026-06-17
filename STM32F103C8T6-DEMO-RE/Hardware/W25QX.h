@@ -1,0 +1,1 @@
+C:/PF/Project/KeilProjects/STM32-Keil-Demo/STM32F103C8T6-DEMO-RE/Hardware/W25QX/W25QX.h

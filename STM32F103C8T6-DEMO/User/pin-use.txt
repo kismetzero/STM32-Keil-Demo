@@ -1,0 +1,29 @@
+PA0 - T2C1 -------- KEY
+PA1 - T2C2 -------- IR
+
+PA6 - T3C1 ---------- EC11-S1
+PA7 - T3C2 ---------- EC11-S2
+
+PA8 - T1C1 --------- SG90
+
+PA9 - T1C2 ---------- USART-RX
+PA10 - T1C3 --------- USART-TX
+
+PA11  -------- USB-
+PA12  -------- USB+
+
+PB6 ---------- TFT-RES
+PB4 ---------- TFT-DC
+PB5 ---------- TFT-SDA
+PB3 ---------- TFT-SCL
+PB7 ---------- TFT-CS
+
+PB8 - T4C3 ---------- OLED-SCL
+PB9 - T4C4 ---------- OLED-SDA
+
+PB12 ---------- FLS-CS-NSS
+PB14 ---------- FLS-DO-MISO
+PB13 ---------- FLS-CLK-SCK
+PB15 ---------- FLS-DI-MOSI
+
+PC13 --------- LED

@@ -1,0 +1,1147 @@
+#include "spi_bus_stm32_std.h"
+#include "delay.h"
+
+#define LOG_TAG "spi_impl"
+#include "elog.h"
+
+#define SPI_BUS_FAST 0
+
+//=====================================================================================================
+// SPI CS OOP
+
+static spi_bus_status_t spi_bus_stm32_std_cs_init(spi_cs_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
+	if (cfg->inited == 1) {
+		log_d("already init");
+		return SPI_BUS_STATUS_OK;
+	}
+	// 使能 GPIO 总线时钟
+	RCC_APB2PeriphClockCmd(cfg->cs_gpio_clk, ENABLE);
+	// GPIO 初始化
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	// CS 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->cs_gpio_pin;
+	GPIO_Init(cfg->cs_gpio_port, &GPIO_InitStructure);
+	// 默认拉高 (释放设备)
+	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
+	log_i("success! cs_pin=%d", cfg->cs_gpio_pin);
+	cfg->inited = 1;
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_cs_high(spi_cs_handle_t *handle) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_SET);
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_cs_low(spi_cs_handle_t *handle) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_cs_config_t *cfg = (spi_bus_stm32_std_cs_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	GPIO_WriteBit(cfg->cs_gpio_port, cfg->cs_gpio_pin, Bit_RESET);
+	return SPI_BUS_STATUS_OK;
+}
+
+static const spi_cs_ops_t spi_bus_stm32_std_cs_ops = {
+	.init = spi_bus_stm32_std_cs_init,
+	.high = spi_bus_stm32_std_cs_high,
+	.low = spi_bus_stm32_std_cs_low,
+};
+
+spi_bus_status_t spi_bus_stm32_std_cs_create_handle(spi_cs_handle_t *handle, spi_bus_stm32_std_cs_config_t *cfg) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (cfg == NULL) {
+		log_e("cfg == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	
+	assert(IS_RCC_APB2_PERIPH(cfg->cs_gpio_clk));
+	assert(IS_GPIO_PIN(cfg->cs_gpio_pin));
+	assert(IS_GPIO_ALL_PERIPH(cfg->cs_gpio_port));
+	
+	handle->user_data = cfg;
+	handle->ops = &spi_bus_stm32_std_cs_ops;
+	
+	spi_bus_status_t ret = handle->ops->init(handle);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
+	}
+	return ret;
+}
+
+//=====================================================================================================
+
+
+//=====================================================================================================
+// SPI SW BUS OOP
+
+__STATIC_INLINE void spi_bus_stm32_std_sw_delay(void) {
+	delay_us(5);
+}
+
+__STATIC_INLINE void spi_bus_stm32_std_sw_sck_write(spi_bus_stm32_std_sw_config_t *cfg, uint8_t val) {
+	GPIO_WriteBit(cfg->sck_gpio_port, cfg->sck_gpio_pin, val ? Bit_SET : Bit_RESET);
+}
+
+__STATIC_INLINE void spi_bus_stm32_std_sw_mosi_write(spi_bus_stm32_std_sw_config_t *cfg, uint8_t val) {
+	GPIO_WriteBit(cfg->mosi_gpio_port, cfg->mosi_gpio_pin, val ? Bit_SET : Bit_RESET);
+}
+
+__STATIC_INLINE uint8_t spi_bus_stm32_std_sw_miso_read(spi_bus_stm32_std_sw_config_t *cfg) {
+	return GPIO_ReadInputDataBit(cfg->miso_gpio_port, cfg->miso_gpio_pin);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_switch(spi_bus_stm32_std_sw_config_t *cfg, uint8_t tx, uint8_t *rx) {
+	uint8_t cpol = (cfg->mode >> 1) & 0x01;
+	uint8_t cpha = cfg->mode & 0x01;
+	uint8_t res = 0x00;
+	for (uint8_t i = 0; i < 8; i++) {
+		if (tx & (0x80 >> i)) { spi_bus_stm32_std_sw_mosi_write(cfg, 1); }
+		else { spi_bus_stm32_std_sw_mosi_write(cfg, 0); }
+		spi_bus_stm32_std_sw_delay(); 
+		
+		if (cpha == 0) {
+			spi_bus_stm32_std_sw_sck_write(cfg, !cpol);
+			spi_bus_stm32_std_sw_delay();
+			if (spi_bus_stm32_std_sw_miso_read(cfg)) { res |= (0x80 >> i); }
+			spi_bus_stm32_std_sw_sck_write(cfg, cpol);
+		} else {
+			spi_bus_stm32_std_sw_sck_write(cfg, !cpol);
+			spi_bus_stm32_std_sw_delay();
+			spi_bus_stm32_std_sw_sck_write(cfg, cpol);
+			spi_bus_stm32_std_sw_delay();
+			if (spi_bus_stm32_std_sw_miso_read(cfg)) { res |= (0x80 >> i); }
+		}
+		spi_bus_stm32_std_sw_delay();
+	}
+	if (rx != NULL) { *rx = res; }
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_init(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited == 1) {
+		log_d("already init");
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (cfg->mutex_lock == NULL) {
+			cfg->mutex_lock = xSemaphoreCreateRecursiveMutex();
+			if (cfg->mutex_lock == NULL) {
+				log_e("mutex_lock create fail");
+				return SPI_BUS_STATUS_ERR;
+			}
+		}
+	#endif /* SYS_EN_FREERTOS */
+	// 使能 GPIO 总线时钟
+	RCC_APB2PeriphClockCmd(cfg->sck_gpio_clk | cfg->mosi_gpio_clk | cfg->miso_gpio_clk, ENABLE);
+	// GPIO 初始化
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	// SCK 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->sck_gpio_pin;
+	GPIO_Init(cfg->sck_gpio_port, &GPIO_InitStructure);
+	// MOSI 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->mosi_gpio_pin;
+	GPIO_Init(cfg->mosi_gpio_port, &GPIO_InitStructure);
+	// MISO 引脚初始化
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_InitStructure.GPIO_Pin = cfg->miso_gpio_pin;
+	GPIO_Init(cfg->miso_gpio_port, &GPIO_InitStructure);
+	// 计算并打印模式
+	uint8_t mode = cfg->mode;
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
+	}
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	// 初始化状态：
+	spi_bus_stm32_std_sw_sck_write(cfg, cpol);
+	spi_bus_stm32_std_sw_mosi_write(cfg, 0);
+	cfg->inited = 1;
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_deinit(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (cfg->mutex_lock != NULL) {
+			vSemaphoreDelete(cfg->mutex_lock);
+            cfg->mutex_lock = NULL;
+		}
+	#endif /* SYS_EN_FREERTOS */
+	cfg->inited = 0;
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_lock(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (xSemaphoreTakeRecursive(cfg->mutex_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+			log_w("mutex_lock timeout");
+			return SPI_BUS_STATUS_ERR_BUSY;
+		}
+	#endif /* SYS_EN_FREERTOS */
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_unlock(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		xSemaphoreGiveRecursive(cfg->mutex_lock);
+	#endif /* SYS_EN_FREERTOS */
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_switch_byte(spi_bus_handle_t *handle, uint8_t tx, uint8_t *rx) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	return spi_bus_stm32_std_sw_switch(cfg, tx, rx);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_sw_switch_byte(handle, 0xFF, byte);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_sw_switch_byte(handle, byte, NULL);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("suser_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	if (tx == NULL && rx == NULL) {
+		log_e("both tx and rx are NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (len == 0) {
+		log_e("len == 0");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	for (uint16_t i = 0; i < len; i++) {
+		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
+		uint8_t rx_byte;
+		spi_bus_stm32_std_sw_switch(cfg, tx_byte, &rx_byte);
+		if (rx != NULL) { rx[i] = rx_byte; }
+	}
+	return SPI_BUS_STATUS_OK;
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_sw_switch_bytes(handle, NULL, data, len);	
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_sw_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_sw_switch_bytes(handle, data, NULL, len);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_sw_set_mode(spi_bus_handle_t *handle, spi_bus_mode_t mode) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_sw_config_t *cfg = (spi_bus_stm32_std_sw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	// 计算并打印模式
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+	}
+	cfg->mode = mode;
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	spi_bus_stm32_std_sw_sck_write(cfg, cpol);
+	return SPI_BUS_STATUS_OK;
+}
+
+static const spi_bus_ops_t spi_bus_stm32_std_sw_ops = {
+	.init = spi_bus_stm32_std_sw_init,
+	.deinit = spi_bus_stm32_std_sw_deinit,
+	
+	.lock = spi_bus_stm32_std_sw_lock,
+	.unlock = spi_bus_stm32_std_sw_unlock,
+	
+	.read_byte = spi_bus_stm32_std_sw_read_byte,
+	.write_byte = spi_bus_stm32_std_sw_write_byte,
+	.switch_byte = spi_bus_stm32_std_sw_switch_byte,
+	
+	.read_bytes = spi_bus_stm32_std_sw_read_bytes,
+	.write_bytes = spi_bus_stm32_std_sw_write_bytes,
+	.switch_bytes = spi_bus_stm32_std_sw_switch_bytes,
+	
+	.set_mode = spi_bus_stm32_std_sw_set_mode,
+};
+
+spi_bus_status_t spi_bus_stm32_std_sw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_sw_config_t *cfg) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (cfg == NULL) {
+		log_e("cfg == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	
+	assert(IS_RCC_APB2_PERIPH(cfg->sck_gpio_clk));
+	assert(IS_GPIO_PIN(cfg->sck_gpio_pin));
+	assert(IS_GPIO_ALL_PERIPH(cfg->sck_gpio_port));
+	
+	assert(IS_RCC_APB2_PERIPH(cfg->mosi_gpio_clk));
+	assert(IS_GPIO_PIN(cfg->mosi_gpio_pin));
+	assert(IS_GPIO_ALL_PERIPH(cfg->mosi_gpio_port));
+	
+	assert(IS_RCC_APB2_PERIPH(cfg->miso_gpio_clk));
+	assert(IS_GPIO_PIN(cfg->miso_gpio_pin));
+	assert(IS_GPIO_ALL_PERIPH(cfg->miso_gpio_port));
+	
+	handle->user_data = cfg;
+	handle->ops = &spi_bus_stm32_std_sw_ops;
+	
+	spi_bus_status_t ret = handle->ops->init(handle);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
+	}
+	return ret;
+}
+
+//=====================================================================================================
+
+
+//=====================================================================================================
+// SPI HW BUS OOP
+
+static spi_bus_status_t spi_bus_stm32_std_hw_switch(spi_bus_stm32_std_hw_config_t *cfg, uint8_t tx, uint8_t *rx) {
+	uint8_t res = 0x00;
+	while (SPI_I2S_GetFlagStatus(cfg->spi_periph, SPI_I2S_FLAG_TXE) != SET);
+	SPI_I2S_SendData(cfg->spi_periph, tx);
+	while (SPI_I2S_GetFlagStatus(cfg->spi_periph, SPI_I2S_FLAG_RXNE) != SET);
+	res = SPI_I2S_ReceiveData(cfg->spi_periph);
+	if (rx != NULL) { *rx = res; }
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_init(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited == 1) {
+		log_d("already init");
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (cfg->mutex_lock == NULL) {
+			cfg->mutex_lock = xSemaphoreCreateRecursiveMutex();
+			if (cfg->mutex_lock == NULL) {
+				log_e("mutex_lock create fail");
+				return SPI_BUS_STATUS_ERR;
+			}
+		}
+	#endif /* SYS_EN_FREERTOS */
+	// 使能 GPIO 总线时钟
+	RCC_APB2PeriphClockCmd(cfg->spi_gpio_clk, ENABLE);
+	// 使能 SPI 总线时钟
+	if (cfg->spi_periph == SPI1) {
+		RCC_APB2PeriphClockCmd(cfg->spi_clk, ENABLE);
+	} else {
+		RCC_APB1PeriphClockCmd(cfg->spi_clk, ENABLE);
+	}
+	// GPIO 引脚初始化
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	// SCK 和 MOSI 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = cfg->sck_gpio_pin | cfg->mosi_gpio_pin;
+	GPIO_Init(cfg->spi_gpio_port, &GPIO_InitStructure);
+	// MISO 引脚初始化
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_InitStructure.GPIO_Pin = cfg->miso_gpio_pin;
+	GPIO_Init(cfg->spi_gpio_port, &GPIO_InitStructure);
+	// 计算并打印模式
+	uint8_t mode = cfg->mode;
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
+	}
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	// SPI 初始化
+	SPI_InitTypeDef SPI_InitStructure;
+	//SPI_StructInit(&SPI_InitStructure);
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;							// 主从模式
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;		// 工作模式
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;						// 数据帧大小
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;						// 高位先行
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;	// 分频系数
+	SPI_InitStructure.SPI_CPOL = cpol ? SPI_CPOL_High : SPI_CPOL_Low;
+	SPI_InitStructure.SPI_CPHA = cpha ? SPI_CPHA_2Edge : SPI_CPHA_1Edge;
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	SPI_InitStructure.SPI_CRCPolynomial = 0x0007;							// CRC校验参数，手册默认0x0007
+	SPI_Init(cfg->spi_periph, &SPI_InitStructure);
+	// SPI 使能
+	SPI_Cmd(cfg->spi_periph, ENABLE);
+	cfg->inited = 1;
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_deinit(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return SPI_BUS_STATUS_OK;
+	}
+	SPI_Cmd(cfg->spi_periph, DISABLE);
+	if (cfg->spi_periph == SPI1) {
+        RCC_APB2PeriphClockCmd(cfg->spi_clk, DISABLE);
+    } else {
+        RCC_APB1PeriphClockCmd(cfg->spi_clk, DISABLE);
+    }
+	#if SYS_EN_FREERTOS
+		if (cfg->mutex_lock != NULL) {
+			vSemaphoreDelete(cfg->mutex_lock);
+            cfg->mutex_lock = NULL;
+		}
+	#endif /* SYS_EN_FREERTOS */
+	cfg->inited = 0;
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_lock(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		if (xSemaphoreTakeRecursive(cfg->mutex_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+			log_w("mutex_lock timeout");
+			return SPI_BUS_STATUS_ERR_BUSY;
+		}
+	#endif /* SYS_EN_FREERTOS */
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_unlock(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		return SPI_BUS_STATUS_OK;
+	}
+	#if SYS_EN_FREERTOS
+		xSemaphoreGiveRecursive(cfg->mutex_lock);
+	#endif /* SYS_EN_FREERTOS */
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_switch_byte(spi_bus_handle_t *handle, uint8_t tx, uint8_t *rx) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	return spi_bus_stm32_std_hw_switch(cfg, tx, rx);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_hw_switch_byte(handle, 0xFF, byte);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_hw_switch_byte(handle, byte, NULL);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	if (tx == NULL && rx == NULL) {
+		log_e("both tx and rx are NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (len == 0) {
+		log_e("len == 0");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	for (uint16_t i = 0; i < len; i++) {
+		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
+		uint8_t rx_byte;
+		spi_bus_stm32_std_hw_switch(cfg, tx_byte, &rx_byte);
+		if (rx != NULL) { rx[i] = rx_byte; }
+	}
+	return SPI_BUS_STATUS_OK;
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_hw_switch_bytes(handle, NULL, data, len);	
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_hw_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_hw_switch_bytes(handle, data, NULL, len);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_hw_set_mode(spi_bus_handle_t *handle, spi_bus_mode_t mode) {
+	// 硬件 SPI 不方便切换模式
+	return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_hw_config_t *cfg = (spi_bus_stm32_std_hw_config_t *)handle->user_data;
+	if (cfg->inited != 1) {
+		log_e("no init");
+		return SPI_BUS_STATUS_ERR_NO_INIT;
+	}
+	// 计算并打印模式
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+	}
+	cfg->mode = mode;
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	return SPI_BUS_STATUS_OK;
+}
+
+static const spi_bus_ops_t spi_bus_stm32_std_hw_ops = {
+	.init = spi_bus_stm32_std_hw_init,
+	.deinit = spi_bus_stm32_std_hw_deinit,
+	
+	.lock = spi_bus_stm32_std_hw_lock,
+	.unlock = spi_bus_stm32_std_hw_unlock,
+	
+	.read_byte = spi_bus_stm32_std_hw_read_byte,
+	.write_byte = spi_bus_stm32_std_hw_write_byte,
+	.switch_byte = spi_bus_stm32_std_hw_switch_byte,
+	
+	.read_bytes = spi_bus_stm32_std_hw_read_bytes,
+	.write_bytes = spi_bus_stm32_std_hw_write_bytes,
+	.switch_bytes = spi_bus_stm32_std_hw_switch_bytes,
+	
+	.set_mode = spi_bus_stm32_std_hw_set_mode,
+};
+
+spi_bus_status_t spi_bus_stm32_std_hw_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_hw_config_t *cfg) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (cfg == NULL) {
+		log_e("cfg == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	
+	if (cfg->spi_periph == SPI1) {
+		ELOG_ASSERT(IS_RCC_APB2_PERIPH(cfg->spi_clk));
+	} else {
+		ELOG_ASSERT(IS_RCC_APB1_PERIPH(cfg->spi_clk));
+	}
+	
+	assert(IS_SPI_ALL_PERIPH(cfg->spi_periph));
+	assert(IS_RCC_APB2_PERIPH(cfg->spi_gpio_clk));
+	assert(IS_GPIO_PIN(cfg->sck_gpio_pin));
+	assert(IS_GPIO_PIN(cfg->mosi_gpio_pin));
+	assert(IS_GPIO_PIN(cfg->miso_gpio_pin));
+	assert(IS_GPIO_ALL_PERIPH(cfg->spi_gpio_port));
+	
+	handle->user_data = cfg;
+	handle->ops = &spi_bus_stm32_std_hw_ops;
+	
+//	if (cfg->spi_periph == SPI1) {
+//		cfg->spi_clk		= RCC_APB2Periph_SPI1;
+//		cfg->spi_gpio_clk	= RCC_APB2Periph_GPIOA;
+//		cfg->sck_gpio_pin	= GPIO_Pin_5;
+//		cfg->mosi_gpio_pin	= GPIO_Pin_7;
+//		cfg->miso_gpio_pin	= GPIO_Pin_6;
+//		cfg->spi_gpio_port	= GPIOA;
+//	}
+	
+	spi_bus_status_t ret = handle->ops->init(handle);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
+	}
+	return ret;
+}
+
+//=====================================================================================================
+
+#if SPI_BUS_USE_MACRO_IMPL
+
+//=====================================================================================================
+// SPI SW BUS MACRO
+
+#define SPI_BUS_STM32_STD_SW_SCK_GPIO_CLK		RCC_APB2Periph_GPIOA
+#define SPI_BUS_STM32_STD_SW_SCK_GPIO_PIN		GPIO_Pin_5
+#define SPI_BUS_STM32_STD_SW_SCK_GPIO_PORT		GPIOA
+
+#define SPI_BUS_STM32_STD_SW_MOSI_GPIO_CLK		RCC_APB2Periph_GPIOA
+#define SPI_BUS_STM32_STD_SW_MOSI_GPIO_PIN		GPIO_Pin_7
+#define SPI_BUS_STM32_STD_SW_MOSI_GPIO_PORT		GPIOA
+
+#define SPI_BUS_STM32_STD_SW_MISO_GPIO_CLK		RCC_APB2Periph_GPIOA
+#define SPI_BUS_STM32_STD_SW_MISO_GPIO_PIN		GPIO_Pin_6
+#define SPI_BUS_STM32_STD_SW_MISO_GPIO_PORT		GPIOA
+
+#define SPI_BUS_STM32_STD_SW_SCK_WRITE(X)		GPIO_WriteBit(SPI_BUS_STM32_STD_SW_SCK_GPIO_PORT, SPI_BUS_STM32_STD_SW_SCK_GPIO_PIN, X ? Bit_SET : Bit_RESET)
+#define SPI_BUS_STM32_STD_SW_MOSI_WRITE(X)		GPIO_WriteBit(SPI_BUS_STM32_STD_SW_MOSI_GPIO_PORT, SPI_BUS_STM32_STD_SW_MOSI_GPIO_PIN, X ? Bit_SET : Bit_RESET)
+#define SPI_BUS_STM32_STD_SW_MISO_READ()		GPIO_ReadInputDataBit(SPI_BUS_STM32_STD_SW_MISO_GPIO_PORT, SPI_BUS_STM32_STD_SW_MISO_GPIO_PIN)
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_switch(uint8_t mode, uint8_t tx, uint8_t *rx) {
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	uint8_t res = 0x00;
+	for (uint8_t i = 0; i < 8; i++) {
+		if (tx & (0x80 >> i)) { SPI_BUS_STM32_STD_SW_MOSI_WRITE(1); }
+		else { SPI_BUS_STM32_STD_SW_MOSI_WRITE(0); }
+		spi_bus_stm32_std_sw_delay(); 
+		if (cpha == 0) {
+			SPI_BUS_STM32_STD_SW_SCK_WRITE(!cpol);
+			spi_bus_stm32_std_sw_delay();
+			if (SPI_BUS_STM32_STD_SW_MISO_READ()) { res |= (0x80 >> i); }
+			SPI_BUS_STM32_STD_SW_SCK_WRITE(cpol);
+		} else {
+			SPI_BUS_STM32_STD_SW_SCK_WRITE(!cpol);
+			spi_bus_stm32_std_sw_delay();
+			SPI_BUS_STM32_STD_SW_SCK_WRITE(cpol);
+			spi_bus_stm32_std_sw_delay();
+			if (SPI_BUS_STM32_STD_SW_MISO_READ()) { res |= (0x80 >> i); }
+		}
+		spi_bus_stm32_std_sw_delay();
+	}
+	if (rx != NULL) { *rx = res; }
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_SW_init(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_SW_config_t *cfg = (spi_bus_stm32_std_SW_config_t *)handle->user_data;
+	
+	RCC_APB2PeriphClockCmd(SPI_BUS_STM32_STD_SW_SCK_GPIO_CLK | SPI_BUS_STM32_STD_SW_MOSI_GPIO_CLK | SPI_BUS_STM32_STD_SW_MISO_GPIO_CLK, ENABLE);
+	
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	// SCK 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_SW_SCK_GPIO_PIN;
+	GPIO_Init(SPI_BUS_STM32_STD_SW_SCK_GPIO_PORT, &GPIO_InitStructure);
+	// MOSI 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_SW_MOSI_GPIO_PIN;
+	GPIO_Init(SPI_BUS_STM32_STD_SW_MOSI_GPIO_PORT, &GPIO_InitStructure);
+	// MISO 引脚初始化
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_SW_MISO_GPIO_PIN;
+	GPIO_Init(SPI_BUS_STM32_STD_SW_MISO_GPIO_PORT, &GPIO_InitStructure);
+	// 计算并打印模式
+	uint8_t mode = cfg->mode;
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
+	}
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	// 初始化状态：
+	SPI_BUS_STM32_STD_SW_SCK_WRITE(cpol);
+	SPI_BUS_STM32_STD_SW_MOSI_WRITE(0);
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_SW_switch_byte(spi_bus_handle_t *handle, uint8_t tx, uint8_t *rx) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_SW_config_t *cfg = (spi_bus_stm32_std_SW_config_t *)handle->user_data;
+	return spi_bus_stm32_std_SW_switch(cfg->mode, tx, rx);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_SW_switch_byte(handle, 0xFF, byte);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_SW_switch_byte(handle, byte, NULL);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_SW_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (tx == NULL && rx == NULL) {
+		log_e("both tx and rx are NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (len == 0) {
+		log_e("len == 0");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_SW_config_t *cfg = (spi_bus_stm32_std_SW_config_t *)handle->user_data;
+	for (uint16_t i = 0; i < len; i++) {
+		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
+		uint8_t rx_byte;
+		spi_bus_stm32_std_SW_switch(cfg->mode, tx_byte, &rx_byte);
+		if (rx != NULL) { rx[i] = rx_byte; }
+	}
+	return SPI_BUS_STATUS_OK;
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_SW_switch_bytes(handle, NULL, data, len);	
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_SW_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_SW_switch_bytes(handle, data, NULL, len);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_SW_set_mode(spi_bus_handle_t *handle, spi_bus_mode_t mode) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_SW_config_t *cfg = (spi_bus_stm32_std_SW_config_t *)handle->user_data;
+	// 计算并打印模式
+	cfg->mode = mode;
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
+	}
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	SPI_BUS_STM32_STD_SW_SCK_WRITE(cpol);
+	return SPI_BUS_STATUS_OK;
+}
+
+static const spi_bus_ops_t spi_bus_stm32_std_SW_ops = {
+	.init = spi_bus_stm32_std_SW_init,
+	.switch_byte = spi_bus_stm32_std_SW_switch_byte,
+	.read_byte = spi_bus_stm32_std_SW_read_byte,
+	.write_byte = spi_bus_stm32_std_SW_write_byte,
+	.switch_bytes = spi_bus_stm32_std_SW_switch_bytes,
+	.read_bytes = spi_bus_stm32_std_SW_read_bytes,
+	.write_bytes = spi_bus_stm32_std_SW_write_bytes,
+	.set_mode = spi_bus_stm32_std_SW_set_mode,
+};
+
+spi_bus_status_t spi_bus_stm32_std_SW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_SW_config_t *cfg) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (cfg == NULL) {
+		log_e("cfg == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	handle->user_data = cfg;
+	handle->ops = &spi_bus_stm32_std_SW_ops;
+	spi_bus_status_t ret = handle->ops->init(handle);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
+	}
+	return ret;
+}
+
+//=====================================================================================================
+
+
+//=====================================================================================================
+// SPI HW BUS MACRO
+
+#define SPI_BUS_STM32_STD_HW_SPI_CLK			RCC_APB2Periph_SPI1
+#define SPI_BUS_STM32_STD_HW_SPI_PERIPH			SPI1
+#define SPI_BUS_STM32_STD_HW_GPIO_CLK			RCC_APB2Periph_GPIOA
+#define SPI_BUS_STM32_STD_HW_SCK_GPIO_PIN		GPIO_Pin_5
+#define SPI_BUS_STM32_STD_HW_MOSI_GPIO_PIN		GPIO_Pin_7
+#define SPI_BUS_STM32_STD_HW_MISO_GPIO_PIN		GPIO_Pin_6
+#define SPI_BUS_STM32_STD_HW_GPIO_PORT			GPIOA
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_switch(uint8_t tx, uint8_t *rx) {
+	uint8_t res = 0x00;
+	while (SPI_I2S_GetFlagStatus(SPI_BUS_STM32_STD_HW_SPI_PERIPH, SPI_I2S_FLAG_TXE) != SET);
+	SPI_I2S_SendData(SPI_BUS_STM32_STD_HW_SPI_PERIPH, tx);
+	while (SPI_I2S_GetFlagStatus(SPI_BUS_STM32_STD_HW_SPI_PERIPH, SPI_I2S_FLAG_RXNE) != SET);
+	res = SPI_I2S_ReceiveData(SPI_BUS_STM32_STD_HW_SPI_PERIPH);
+	if (rx != NULL) { *rx = res; }
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_HW_init(spi_bus_handle_t *handle) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_HW_config_t *cfg = (spi_bus_stm32_std_HW_config_t *)handle->user_data;
+	
+	RCC_APB2PeriphClockCmd(SPI_BUS_STM32_STD_HW_GPIO_CLK, ENABLE);
+	RCC_APB2PeriphClockCmd(SPI_BUS_STM32_STD_HW_SPI_CLK, ENABLE);
+//	if (SPI_BUS_STM32_STD_HW_SPIX == SPI1) {
+//		RCC_APB2PeriphClockCmd(SPI_BUS_STM32_STD_HW_SPI_CLK, ENABLE);
+//	} else {
+//		RCC_APB1PeriphClockCmd(SPI_BUS_STM32_STD_HW_SPI_CLK, ENABLE);
+//	}
+	
+	GPIO_InitTypeDef GPIO_InitStructure;
+	//GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	// SCK 和 MOSI 引脚初始化
+	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_HW_SCK_GPIO_PIN | SPI_BUS_STM32_STD_HW_MOSI_GPIO_PIN;
+	GPIO_Init(SPI_BUS_STM32_STD_HW_GPIO_PORT, &GPIO_InitStructure);
+	// MISO 引脚初始化
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_InitStructure.GPIO_Pin = SPI_BUS_STM32_STD_HW_MISO_GPIO_PIN;
+	GPIO_Init(SPI_BUS_STM32_STD_HW_GPIO_PORT, &GPIO_InitStructure);
+	// 计算并打印模式
+	uint8_t mode = cfg->mode;
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
+	}
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	
+	SPI_InitTypeDef SPI_InitStructure;
+	//SPI_StructInit(&SPI_InitStructure);
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;							// 主从模式
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;		// 工作模式
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;						// 数据帧大小
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;						// 高位先行
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_128;	// 分频系数
+	SPI_InitStructure.SPI_CPOL = cpol ? SPI_CPOL_High : SPI_CPOL_Low;
+	SPI_InitStructure.SPI_CPHA = cpha ? SPI_CPHA_2Edge : SPI_CPHA_1Edge;
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	SPI_InitStructure.SPI_CRCPolynomial = 0x0007;							// CRC校验参数，手册默认0x0007
+	SPI_Init(SPI_BUS_STM32_STD_HW_SPI_PERIPH, &SPI_InitStructure);
+	
+	SPI_Cmd(SPI_BUS_STM32_STD_HW_SPI_PERIPH, ENABLE);
+	
+	return SPI_BUS_STATUS_OK;
+}
+
+static spi_bus_status_t spi_bus_stm32_std_HW_switch_byte(spi_bus_handle_t *handle, uint8_t tx, uint8_t *rx) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	return spi_bus_stm32_std_HW_switch(tx, rx);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_read_byte(spi_bus_handle_t *handle, uint8_t *byte) {
+	return spi_bus_stm32_std_HW_switch_byte(handle, 0xFF, byte);
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_write_byte(spi_bus_handle_t *handle, uint8_t byte) {
+	return spi_bus_stm32_std_HW_switch_byte(handle, byte, NULL);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_HW_switch_bytes(spi_bus_handle_t *handle, const uint8_t *tx, uint8_t *rx, uint16_t len) {
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (tx == NULL && rx == NULL) {
+		log_e("both tx and rx are NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (len == 0) {
+		log_e("len == 0");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_HW_config_t *cfg = (spi_bus_stm32_std_HW_config_t *)handle->user_data;
+	for (uint16_t i = 0; i < len; i++) {
+		uint8_t tx_byte = (tx != NULL) ? tx[i] : 0xFF;
+		uint8_t rx_byte;
+		spi_bus_stm32_std_HW_switch(tx_byte, &rx_byte);
+		if (rx != NULL) { rx[i] = rx_byte; }
+	}
+	return SPI_BUS_STATUS_OK;
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_read_bytes(spi_bus_handle_t *handle, uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_HW_switch_bytes(handle, NULL, data, len);	
+}
+
+__STATIC_INLINE spi_bus_status_t spi_bus_stm32_std_HW_write_bytes(spi_bus_handle_t *handle, const uint8_t *data, uint16_t len) {
+	return spi_bus_stm32_std_HW_switch_bytes(handle, data, NULL, len);
+}
+
+static spi_bus_status_t spi_bus_stm32_std_HW_set_mode(spi_bus_handle_t *handle, spi_bus_mode_t mode) {
+	// 硬件 SPI 不方便切换模式
+	return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	#if SPI_BUS_FAST == 0
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	#endif	/* SPI_BUS_FAST */
+	if (handle->user_data == NULL) {
+		log_e("user_data == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	spi_bus_stm32_std_HW_config_t *cfg = (spi_bus_stm32_std_HW_config_t *)handle->user_data;
+	// 计算并打印模式
+	cfg->mode = mode;
+	if (mode > 0x03) {
+		log_w("mode=%d invalid! use mode=%d.", mode, SPI_BUS_MODE_0);
+		mode = SPI_BUS_MODE_0;
+		cfg->mode = mode;
+	}
+	uint8_t cpol = (mode >> 1) & 0x01;
+	uint8_t cpha = mode & 0x01;
+	log_d("init success! spi mode=%d (cpol=%d, cpha=%d)", mode, cpol, cpha);
+	return SPI_BUS_STATUS_OK;
+}
+
+static const spi_bus_ops_t spi_bus_stm32_std_HW_ops = {
+	.init = spi_bus_stm32_std_HW_init,
+	.switch_byte = spi_bus_stm32_std_HW_switch_byte,
+	.read_byte = spi_bus_stm32_std_HW_read_byte,
+	.write_byte = spi_bus_stm32_std_HW_write_byte,
+	.switch_bytes = spi_bus_stm32_std_HW_switch_bytes,
+	.read_bytes = spi_bus_stm32_std_HW_read_bytes,
+	.write_bytes = spi_bus_stm32_std_HW_write_bytes,
+	.set_mode = spi_bus_stm32_std_HW_set_mode,
+};
+
+spi_bus_status_t spi_bus_stm32_std_HW_create_handle(spi_bus_handle_t *handle, spi_bus_stm32_std_HW_config_t *cfg) {
+	if (handle == NULL) {
+		log_e("handle == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	if (cfg == NULL) {
+		log_e("Fail! cfg == NULL");
+		return SPI_BUS_STATUS_ERR_INVALID_PARAM;
+	}
+	handle->user_data = cfg;
+	handle->ops = &spi_bus_stm32_std_HW_ops;
+	spi_bus_status_t ret = handle->ops->init(handle);
+	if (ret != SPI_BUS_STATUS_OK) {
+		log_e("init fail (code: %d)", ret);
+	}
+	return ret;
+}
+
+#endif /* SPI_BUS_USE_MACRO_IMPL */

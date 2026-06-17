@@ -1,0 +1,87 @@
+# ------------------------------
+# Keil MDK 工程专用忽略规则
+# ------------------------------
+
+# --- 工程文件与配置 ---
+# *.uvoptx          # 用户工程选项文件（包含本地调试配置，建议忽略）
+# *.uvguix.*        # 用户界面布局文件（如窗口位置等，需忽略）
+# *.bak             # 备份文件（如工程文件自动备份）
+# *.crf             # 交叉引用文件（编译生成）
+# *.d               # 依赖文件（编译生成）
+# *.scvd            # Event Recorder高级调试文件？（my）
+*.uvoptx
+*.uvguix.*
+*.bak
+*.crf
+*.d
+*.scvd
+
+# --- 编译输出文件 ---
+# *.o               # 目标文件（编译生成）
+# *.obj             # 目标文件（Windows 风格）
+# *.axf             # ELF 格式可执行文件（含调试信息）
+# *.hex             # HEX 烧录文件
+# *.bin             # 二进制镜像文件
+# *.map             # 内存映射文件（链接生成）
+# *.lst             # 汇编列表文件（编译生成）
+*.o
+*.obj
+*.axf
+*.hex
+*.bin
+*.map
+*.lst
+
+# --- 构建目录 ---
+# MDK-ARM/          # Keil 默认构建输出目录（包含中间文件）
+# Objects/          # 自定义目标文件目录（如有）
+# Listings/         # 自定义列表文件目录（如有）
+# DebugConfig/      # Debug配置文件目录（my）
+MDK-ARM/
+Objects/
+Listings/
+DebugConfig/
+
+# --- 调试与临时文件 ---
+# *.ini             # 调试脚本（可能包含本地硬件配置）
+# *.log             # 编译日志文件
+# *.dbg             # 调试信息临时文件
+# *.cdb             # 调试配置数据库
+# *.tracespec       # Trace 调试配置文件
+*.ini
+*.log
+*.dbg
+*.cdb
+*.tracespec
+
+# --- IDE 自动生成文件 ---
+# *.uvmpw           # 多项目工作区文件（如有）
+# *.dep             # 旧版本依赖文件
+# *.plg             # 编译过程日志文件
+# *.jlink           # J-Link 调试脚本（本地配置）
+*.uvmpw
+*.dep
+*.plg 
+*.jlink
+
+# --- 其他临时文件 ---
+# *.~*              # 编辑器临时文件（如 Keil 自动保存）
+# *.tmp             # 临时文件
+# build/            # 自定义构建目录（如有）
+*.~*
+*.tmp
+build/
+
+# ------------------------------
+# 通用忽略规则（补充）
+# ------------------------------
+# *.user            # 用户工具链配置（如 VS Code 等）
+# .vscode/          # VS Code 配置目录（如使用其他编辑器）
+# .idea/            # JetBrains IDE 配置目录
+# .DS_Store         # macOS 系统文件
+# Thumbs.db         # Windows 缩略图缓存
+*.user
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

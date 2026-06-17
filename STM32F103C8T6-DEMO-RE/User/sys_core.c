@@ -1,0 +1,296 @@
+#include "sys_core.h"
+
+#define SYS_USE_ALL_EN
+#include "sys_inc.h"
+
+#include "delay.h"
+#include <stdio.h>
+
+#define LOG_TAG "sys"
+#include "elog.h"
+
+sys_init_status_t sys_init_status;
+
+#if SYS_EN_EASYLOGGER
+//	void my_elog_assert_hook(const char* expr, const char* func, size_t line){
+//		log_a("Assert failed: (%s) in %s:%d", expr, func, line);
+//		
+//		while (1) {
+//			__NOP(); 
+//		}
+//	}
+#endif /* SYS_EN_EASYLOGGER */
+
+#if SYS_EN_I2C_BUS_STM32_STD
+	i2c_bus_handle_t i2c_handle;
+	static i2c_bus_stm32_std_sw_config_t swi2c_cfg = {
+		.scl_gpio_clk	= RCC_APB2Periph_GPIOB,
+		.scl_gpio_pin	= GPIO_Pin_8,
+		.scl_gpio_port	= GPIOB,
+		
+		.sda_gpio_clk	= RCC_APB2Periph_GPIOB,
+		.sda_gpio_pin	= GPIO_Pin_9,
+		.sda_gpio_port	= GPIOB,
+	};
+#endif /* SYS_EN_I2C_BUS_STM32_STD */
+
+#if SYS_EN_SPI_BUS_STM32_STD
+	spi_bus_handle_t spi_bus_handle;
+	#if SYS_EN_SPI_BUS_STM32_STD_HW
+		static spi_bus_stm32_std_hw_config_t hwspi_bus_cfg = {
+			.spi_periph		= SPI1,
+			.spi_clk		= RCC_APB2Periph_SPI1,
+			.spi_gpio_clk	= RCC_APB2Periph_GPIOA,
+			.sck_gpio_pin	= GPIO_Pin_5,
+			.mosi_gpio_pin	= GPIO_Pin_7,
+			.miso_gpio_pin	= GPIO_Pin_6,
+			.spi_gpio_port	= GPIOA,
+
+			.mode			= 0,
+		};
+	#else  /* SYS_EN_SPI_BUS_STM32_STD_HW */
+		static spi_bus_stm32_std_sw_config_t swspi_bus_cfg = {
+			.sck_gpio_clk	= RCC_APB2Periph_GPIOA,
+			.sck_gpio_pin	= GPIO_Pin_5,
+			.sck_gpio_port	= GPIOA,
+			
+			.mosi_gpio_clk	= RCC_APB2Periph_GPIOA,
+			.mosi_gpio_pin	= GPIO_Pin_7,
+			.mosi_gpio_port	= GPIOA,
+			
+			.miso_gpio_clk	= RCC_APB2Periph_GPIOA,
+			.miso_gpio_pin	= GPIO_Pin_6,
+			.miso_gpio_port	= GPIOA,
+			
+			.mode			= 0,
+		};
+	#endif /* SYS_EN_SPI_BUS_STM32_STD_HW */
+#endif /* SYS_EN_SPI_BUS_STM32_STD */
+
+#if SYS_EN_DS3231
+	DS3231_Handle_t ds3231_handle;
+	DS3231_DateTime_t ds3231_datetime;
+#endif /* SYS_EN_DS3231 */
+
+#if SYS_EN_W25QX
+	W25QX_Handle_t w25qx_handle;
+	static spi_cs_handle_t w25qx_cs_handle;
+	static spi_bus_stm32_std_cs_config_t w25qx_cs_cfg = {
+		.cs_gpio_clk	= RCC_APB2Periph_GPIOA,
+		.cs_gpio_pin	= GPIO_Pin_4,
+		.cs_gpio_port	= GPIOA,
+	};
+	static spi_dev_handle_t w25qx_spi_handle = {
+		.bus	= &spi_bus_handle,
+		.cs		= &w25qx_cs_handle,
+	};
+#endif /* SYS_EN_W25QX */
+
+#if SYS_EN_AHT20
+	AHT20_Handle_t aht20_handle;
+#endif /* SYS_EN_AHT20 */
+
+#if SYS_EN_SHT40
+	SHT40_Handle_t sht40_handle;
+#endif /* SYS_EN_SHT40 */
+	
+#if SYS_EN_MAX7219
+	MAX7219_Handle_t max7219_handle;
+	static spi_cs_handle_t max7219_cs_handle;
+	static spi_bus_stm32_std_cs_config_t max7219_cs_cfg = {
+		.cs_gpio_clk	= RCC_APB2Periph_GPIOB,
+		.cs_gpio_pin	= GPIO_Pin_0,
+		.cs_gpio_port	= GPIOB,
+	};
+	static spi_dev_handle_t max7219_spi_handle = {
+		.bus	= &spi_bus_handle,
+		.cs		= &max7219_cs_handle,
+	};
+#endif /* SYS_EN_MAX7219 */
+	
+#if SYS_EN_SSD1306
+	SSD1306_Handle_t ssd1306_handle;
+#endif /* SYS_EN_SSD1306 */
+	
+#if SYS_EN_FREERTOS
+//	static SemaphoreHandle_t mutex_lock;
+	
+	#define SYS_EN_FREERTOS_TEST 1
+
+	#if SYS_EN_FREERTOS_TEST
+		TaskHandle_t test_xTaskHandle;
+		void test_vTask(void *pvParameters) {
+			UBaseType_t uxHighWaterMark;
+			for(;;) {
+//				xSemaphoreTake(mutex_lock, portMAX_DELAY);
+				AHT20_Measure(&aht20_handle);
+				W25QX_ReadID(&w25qx_handle);
+				SHT40_Measure(&sht40_handle);
+//				xSemaphoreGive(mutex_lock);
+				uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+				log_d("test Task Stack Left: %d words (%d bytes)", uxHighWaterMark, uxHighWaterMark * 4);
+				vTaskDelay(2000 / portTICK_PERIOD_MS);
+			}
+		}
+	#endif /* SYS_EN_FREERTOS_TEST */
+#endif /* SYS_EN_FREERTOS */
+	
+
+	
+#if SYS_EN_RTC
+	char sys_time_str[9] = "00:00:00";
+	void sys_sync_time(void) {
+		#if SYS_EN_DS3231
+			DS3231_GetDateTime(&ds3231_handle, &ds3231_datetime);
+			snprintf(sys_time_str, sizeof(sys_time_str), "%02d:%02d:%02d", ds3231_datetime.hour, ds3231_datetime.min, ds3231_datetime.sec);
+		#endif /* SYS_EN_DS3231 */
+	}
+	#if SYS_EN_FREERTOS
+		TaskHandle_t SyncTime_xTaskHandle;
+		void SyncTime_vTask(void *pvParameters) {
+//			UBaseType_t uxHighWaterMark;
+			for(;;) {
+//				xSemaphoreTake(mutex_lock, portMAX_DELAY);
+				sys_sync_time();
+//				xSemaphoreGive(mutex_lock);
+//				uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+//				log_d("sync Task Stack Left: %d words (%d bytes)", uxHighWaterMark, uxHighWaterMark * 4);
+				vTaskDelay(500 / portTICK_PERIOD_MS);
+			}
+		}
+	#endif /* SYS_EN_FREERTOS */
+#endif /* SYS_EN_RTC */
+
+void sys_core_init() {
+	delay_init();
+	uint8_t ret;
+	#if SYS_EN_EASYLOGGER
+		/* initialize EasyLogger */
+		ret = elog_init();
+		if (ret != ELOG_NO_ERR) { while(1) { __NOP(); } }
+		/* set EasyLogger log format */
+		elog_set_fmt(ELOG_LVL_ASSERT, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_ERROR, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_WARN, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_INFO, ELOG_FMT_LVL | ELOG_FMT_TAG | ELOG_FMT_TIME);
+		elog_set_fmt(ELOG_LVL_DEBUG, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+		elog_set_fmt(ELOG_LVL_VERBOSE, ELOG_FMT_ALL & ~(ELOG_FMT_P_INFO | ELOG_FMT_T_INFO | ELOG_FMT_DIR));
+//		elog_assert_set_hook(my_elog_assert_hook);
+		/* start EasyLogger */
+		elog_start();
+		sys_init_status.bit.serial_init = 1;
+		sys_init_status.bit.log_init = 1;
+	#endif /* SYS_EN_EASYLOGGER */
+	
+	#if SYS_EN_I2C_BUS_STM32_STD
+		ret = i2c_bus_stm32_std_sw_create_handle(&i2c_handle, &swi2c_cfg);
+		if	(ret != I2C_BUS_STATUS_OK) {
+			log_e("i2c init fail (code: %d)", ret);
+		} else {
+			sys_init_status.bit.i2c_init = 1;
+		}
+	#endif /* SYS_EN_I2C_BUS_STM32_STD */
+
+	#if SYS_EN_SPI_BUS_STM32_STD
+		#if SYS_EN_SPI_BUS_STM32_STD_HW
+			ret = spi_bus_stm32_std_hw_create_handle(&spi_bus_handle, &hwspi_bus_cfg);
+		#else  /* SYS_EN_SPI_BUS_STM32_STD_HW */
+			ret = spi_bus_stm32_std_hw_create_handle(&spi_bus_handle, &hwspi_bus_cfg);
+		#endif /* SYS_EN_SPI_BUS_STM32_STD_HW */
+		if	(ret != SPI_BUS_STATUS_OK) {
+			log_e("spi bus init fail (code: %d)", ret);
+		} else {
+			sys_init_status.bit.spi_init = 1;
+		}
+	#endif /* SYS_EN_SPI_BUS_STM32_STD */
+
+	#if SYS_EN_DS3231
+		if (sys_init_status.bit.i2c_init == 1) {
+			ret = DS3231_Init(&ds3231_handle, &i2c_handle, 0);
+			if	(ret != DS3231_STATUS_OK) {
+				log_e("DS3231 init fail (code: %d)", ret);
+			} else {
+				sys_init_status.bit.rtc_init = 1;
+			}
+		}
+	#endif /* SYS_EN_DS3231 */
+
+	#if SYS_EN_W25QX
+		if (sys_init_status.bit.spi_init == 1) {
+			ret = spi_bus_stm32_std_cs_create_handle(&w25qx_cs_handle, &w25qx_cs_cfg);
+			if	(ret != SPI_BUS_STATUS_OK) {
+				log_e("W25QX cs init fail (code: %d)", ret);
+			} else {
+				ret = W25QX_Init(&w25qx_handle, &w25qx_spi_handle);
+				if	(ret != W25QX_STATUS_OK) {
+					log_e("W25QX init fail (code: %d)", ret);
+				} else {
+					sys_init_status.bit.flash_init = 1;
+				}
+			}
+		}
+	#endif /* SYS_EN_W25QX */
+
+	#if SYS_EN_AHT20
+		if (sys_init_status.bit.i2c_init == 1) {
+			ret = AHT20_Init(&aht20_handle, &i2c_handle, 0);
+			if	(ret != AHT20_STATUS_OK) {
+				log_e("AHT20 init fail (code: %d)", ret);
+			} else {
+				sys_init_status.bit.th_sensor_init = 1;
+			}
+		}
+	#endif /* SYS_EN_AHT20 */
+
+	#if SYS_EN_SHT40
+		if (sys_init_status.bit.i2c_init == 1) {
+			ret = SHT40_Init(&sht40_handle, &i2c_handle, 0, 0);
+			if	(ret != SHT40_STATUS_OK) {
+				log_e("SHT40 init fail (code: %d)", ret);
+			} else {
+				sys_init_status.bit.th_sensor_init = 1;
+			}
+		}
+	#endif /* SYS_EN_SHT40 */
+		
+	#if SYS_EN_MAX7219
+		if (sys_init_status.bit.spi_init == 1) {
+			ret = spi_bus_stm32_std_cs_create_handle(&max7219_cs_handle, &max7219_cs_cfg);
+			if	(ret != SPI_BUS_STATUS_OK) {
+				log_e("MAX7219 cs init fail (code: %d)", ret);
+			} else {
+				ret = MAX7219_Init(&max7219_handle, &max7219_spi_handle, 4);
+				if	(ret != MAX7219_STATUS_OK) {
+					log_e("MAX7219 init fail (code: %d)", ret);
+				} else {
+					sys_init_status.bit.disp_init = 1;
+				}
+			}
+			for (uint8_t i = 0; i < 32; i++) {
+				max7219_handle.LEDarr[i] = i+1;
+			}
+			MAX7219_WriteData(&max7219_handle, max7219_handle.LEDarr, 32);
+		}
+	#endif /* SYS_EN_MAX7219 */
+		
+	#if SYS_EN_SSD1306
+	#endif /* SYS_EN_SSD1306 */
+		
+	#if SYS_EN_FREERTOS
+//		mutex_lock = xSemaphoreCreateMutex();
+//		if (mutex_lock == NULL) {
+//			log_e("mutex_lock create fale");
+//		}
+		if (sys_init_status.bit.rtc_init == 1) {
+			xTaskCreate(SyncTime_vTask, "SyncTimeTask", 140, NULL, 1, &SyncTime_xTaskHandle);
+		}
+		
+		#if SYS_EN_FREERTOS_TEST
+			xTaskCreate(test_vTask, "testTask", 512, NULL, 1, &test_xTaskHandle);
+		#endif /* SYS_EN_FREERTOS_TEST */
+	#endif /* SYS_EN_FREERTOS */
+
+	#if SYS_EN_FREERTOS
+		vTaskStartScheduler();
+	#endif /* SYS_EN_FREERTOS */
+}
